@@ -8,13 +8,14 @@ class DateComponentsMixin:
     """Mixin for handling date components"""
 
     def parse_date_display(
-        self, display_value: str
+        self, display_value: str, field_name: str
     ) -> Tuple[Optional[int], Optional[int], Optional[int]]:
         """
         Parse a display date string into year, month, day components.
 
         Args:
             display_value: Date string in YYYY, YYYY-MM or YYYY-MM-DD format
+            field_name: Name of the field being validated (for error messages)
 
         Returns:
             Tuple of (year, month, day) where month and day may be None
@@ -35,6 +36,8 @@ class DateComponentsMixin:
                 # Validate full date
                 date(year, month, day)
                 return year, month, day
-            raise ValueError(_("Invalid date format"))
+            raise ValueError
         except (ValueError, TypeError):
-            raise ValidationError(_("Invalid date format"))
+            raise ValidationError(
+                {field_name: _("Invalid date format. Use YYYY, YYYY-MM, or YYYY-MM-DD")}
+            )

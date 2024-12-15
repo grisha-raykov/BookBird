@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-4">
+            {% if author.image_url %}
+                <img src="{{ author.image_url }}" 
+                     class="img-fluid rounded" 
+                     alt="{{ author.canonical_name }}">
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <h1>{{ author.canonical_name }}</h1>
+            {% if author.legal_name %}
+                <p class="text-muted">{{ author.legal_name }}</p>
+            {% endif %}
+            
+            <dl class="row">
+                {% if author.birthdate %}
+                    <dt class="col-sm-3">{% trans "Born" %}</dt>
+                    <dd class="col-sm-9">
+                        {{ author.birthdate }}
+                        {% if author.birthplace %}
+                            {% trans "in" %} {{ author.birthplace }}
+                        {% endif %}
+                    </dd>
+                {% endif %}
+                
+                {% if author.deathdate %}
+                    <dt class="col-sm-3">{% trans "Died" %}</dt>
+                    <dd class="col-sm-9">{{ author.deathdate }}</dd>
+                {% endif %}
+                
+                {% if author.language %}
+                    <dt class="col-sm-3">{% trans "Language" %}</dt>
+                    <dd class="col-sm-9">{{ author.language.name }}</dd>
+                {% endif %}
+            </dl>
+
+            {% if author.notes %}
+                <h3>{% trans "About" %}</h3>
+                <div class="mb-4">{{ author.notes }}</div>
+            {% endif %}
+            
+            <div class="mt-4">
+                {% if author.wikipedia_url %}
+                    <a href="{{ author.wikipedia_url }}" 
+                       class="btn btn-outline-primary me-2" 
+                       target="_blank">
+                        {% trans "Wikipedia" %}
+                    </a>
+                {% endif %}
+                {% if author.imdb_url %}
+                    <a href="{{ author.imdb_url }}" 
+                       class="btn btn-outline-primary me-2" 
+                       target="_blank">
+                        {% trans "IMDb" %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
