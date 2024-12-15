@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -135,23 +134,24 @@ class Author(models.Model, DateComponentsMixin):
         help_text=_("Additional notes about the author. Supports markdown"),
     )
 
+    isfdb_id = models.PositiveBigIntegerField(
+        blank=True,
+        null=True,
+        unique=True,
+        help_text=_("ISFDB author ID"),
+    )
+
     def clean(self) -> None:
-        """Parse display dates into components"""
+        """Validate author data"""
         if self.birthdate:
-            try:
-                self.birth_year, self.birth_month, self.birth_day = (
-                    self.parse_date_display(self.birthdate)
-                )
-            except ValidationError as e:
-                raise ValidationError({"birthdate_display": e})
+            self.birth_year, self.birth_month, self.birth_day = self.parse_date_display(
+                self.birthdate, "birthdate"
+            )
 
         if self.deathdate:
-            try:
-                self.death_year, self.death_month, self.death_day = (
-                    self.parse_date_display(self.deathdate)
-                )
-            except ValidationError as e:
-                raise ValidationError({"deathdate_display": e})
+            self.death_year, self.death_month, self.death_day = self.parse_date_display(
+                self.deathdate, "deathdate"
+            )
 
         super().clean()
 
@@ -224,3 +224,46 @@ class Author(models.Model, DateComponentsMixin):
         else:
             self.deathdate = ""
         super().save(*args, **kwargs)
+
+
+class AuthorTransliteration(models.Model):
+    """Model for storing romanized transliterations of author names"""
+
+    author = models.ForeignKey(
+        "Author",
+        on_delete=models.CASCADE,
+        related_name="transliterations",
+        verbose_name=_("Author"),
+        help_text=_("The author this transliteration belongs to"),
+    )
+
+    transliterated_name = models.TextField(
+        verbose_name=_("Romanized Name"),
+        help_text=_("Romanized version of the author's name"),
+    )
+
+    type = models.CharField(
+        max_length=20,
+        choices=[
+            ("CANONICAL", _("Canonical Name")),
+            ("LEGAL", _("Legal Name")),
+        ],
+        default="CANONICAL",
+        help_text=_("Type of name being transliterated"),
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Notes"),
+        help_text=_("Additional notes about this transliteration"),
+    )
+
+    class Meta:
+        verbose_name = _("Author Transliteration")
+        verbose_name_plural = _("Author Transliterations")
+        ordering = ["transliterated_name"]
+        unique_together = ["author", "type"]
+
+    def __str__(self):
+        return self.transliterated_name

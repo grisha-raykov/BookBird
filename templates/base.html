@@ -1,0 +1,120 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookBird{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="icon" href="{% static 'favicon.png' %}" type="image/png">
+
+</head>
+<body>
+<!-- Top navbar -->
+<nav class="navbar navbar-expand-lg bg-white">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <img src="{% static 'images/full-logo-b&w.svg' %}" alt="BookBird">
+        </a>
+
+        <!-- Single toggle button for both menus -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Combined collapse content -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- Search form -->
+
+
+            <!-- Navigation menu items -->
+            <div class="custom-navbar w-100 mt-3">
+                <ul class="navbar-nav justify-content-evenly">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.namespace == 'authors' %}active{% endif %}"
+                           href="{% url 'authors:list' %}">
+                            <i class="bi bi-people-fill nav-icon-authors"></i> Authors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-book-fill nav-icon-books"></i> Books
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-grid-fill nav-icon-categories"></i> Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-info-circle-fill nav-icon-about"></i> About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- User menu -->
+            <div class="nav-item dropdown ms-lg-3">
+                {% if user.is_authenticated %}
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                <i class="bi bi-gear-fill"></i> Admin
+                            </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="#">
+                            <i class="bi bi-person"></i> Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="#">
+                            <i class="bi bi-gear"></i> Settings
+                        </a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a></li>
+                    </ul>
+                {% else %}
+                    <div class="auth-buttons">
+                        <a class="btn btn-outline-primary" href="#">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                        </a>
+                        <a class="btn btn-primary" href="#">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <form class="d-flex flex-grow-1 mx-lg-4 my-2 my-lg-0" role="search" method="get" action="#">
+        <div class="input-group">
+            <input class="form-control" type="search" placeholder="{% trans 'Search authors...' %}" name="q">
+            <button class="btn btn-outline-secondary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
