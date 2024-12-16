@@ -25,3 +25,9 @@ class StoryLength(models.TextChoices):
     NOVELLA = "NOVELLA", _("Novella")
     NOVELETTE = "NOVELETTE", _("Novelette")
     SHORTSTORY = "SHORTSTORY", _("Short Story")
+
+
+class AuthorRole(models.IntegerChoices):
+    CANONICAL = 1, _("Canonical author entry")
+    INTERVIEWEE = 2, _("Interviewee author")
+    REVIEWEE = 3, _("Reviewee author")

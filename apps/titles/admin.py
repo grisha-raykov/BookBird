@@ -1,22 +1,41 @@
 from django.contrib import admin
+from django.db.models import Prefetch
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
+from apps.titles.inlines import (
+    VariantTitleInline,
+    TitleTransliterationInline,
+    SeriesTitleInline,
+    AuthorTitleInline,
+    SeriesTransliterationInline,
+)
 from .choices import TitleType
 from .forms import TitleAdminForm
-from .models import Title, TitleTransliteration, Series
-
-
-class TitleTransliterationInline(admin.TabularInline):
-    model = TitleTransliteration
-    extra = 1
-    min_num = 0
+from .models import Title, Series, AuthorTitle
 
 
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
-    forms = TitleAdminForm
-    inlines = [TitleTransliterationInline]
-    list_display = ["title", "type", "language", "is_canonical", "first_pub_date"]
+    form = TitleAdminForm
+    inlines = [VariantTitleInline, TitleTransliterationInline, AuthorTitleInline]
+
+    list_display = [
+        "title",
+        "type",
+        "language",
+        "is_canonical",
+        "first_pub_date",
+        "display_authors",
+    ]
+    list_select_related = [
+        "language",
+        "parent_title",
+        "series",
+    ]
+    list_per_page = 20
 
     list_filter = [
         "type",
@@ -27,11 +46,12 @@ class TitleAdmin(admin.ModelAdmin):
         "is_non_genre",
         "is_novelization",
     ]
+
     search_fields = [
-        "title",  # Allow searching by title
-        "language",
-        "=id",  # Allow searching by exact ID
-        "parent_title__title",  # Search in parent titles
+        "title",
+        "language__name",
+        "transliterations__transliterated_text",
+        "parent_title__title",
     ]
 
     readonly_fields = [
@@ -39,7 +59,9 @@ class TitleAdmin(admin.ModelAdmin):
         "first_pub_year",
         "first_pub_month",
         "first_pub_day",
+        "series_info",
     ]
+
     autocomplete_fields = [
         "parent_title",
         "language",
@@ -48,18 +70,7 @@ class TitleAdmin(admin.ModelAdmin):
     fieldsets = [
         (
             None,
-            {
-                "fields": (
-                    "title",
-                    "type",
-                    "story_length",
-                    "language",
-                )
-            },
-        ),
-        (
-            _("Publication Details"),
-            {"fields": ("first_pub_date",)},
+            {"fields": ("title", "type", "story_length", "language", "first_pub_date")},
         ),
         (
             _("Title Relationships"),
@@ -67,7 +78,19 @@ class TitleAdmin(admin.ModelAdmin):
                 "fields": (
                     "parent_title",
                     "is_canonical",
-                )
+                ),
+                "description": _("Parent title and variant titles relationship"),
+            },
+        ),
+        (
+            _("Series Information"),
+            {
+                "fields": (
+                    "series",
+                    "series_position",
+                    "series_info",
+                ),
+                "description": _("Series this title belongs to"),
             },
         ),
         (
@@ -87,40 +110,79 @@ class TitleAdmin(admin.ModelAdmin):
         ),
     ]
 
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing existing object
-            return self.readonly_fields
-        return ["id"]  # only id readonly when creating new object
+    def series_info(self, obj):
+        """Display series information with hierarchy"""
+        if not obj.series:
+            return _("Not part of a series")
+
+        current_series = obj.series
+        series_chain = []
+
+        while current_series:
+            position = ""
+            if current_series == obj.series:
+                position = f" (#{obj.series_position})" if obj.series_position else ""
+            elif current_series.series_parent_position:
+                position = f" (#{current_series.series_parent_position})"
+
+            series_chain.append(
+                format_html(
+                    '<a href="{}">{}</a>{}',
+                    reverse("admin:titles_series_change", args=[current_series.pk]),
+                    current_series.title,
+                    position,
+                )
+            )
+            current_series = current_series.parent
+
+        return format_html(" → ".join(reversed(series_chain)))
+
+    series_info.short_description = _("Series Hierarchy")
+
+    def get_queryset(self, request):
+        """Optimize querysets with prefetch_related for variants"""
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "language",
+                "parent_title",
+                "series",
+            )
+            .prefetch_related(
+                "variant_titles",
+                "transliterations",
+                Prefetch(
+                    "author_relationships",
+                    queryset=AuthorTitle.objects.select_related("author").only(
+                        "author__canonical_name", "role", "title_id", "author_id"
+                    ),
+                ),
+            )
+        )
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-
         # Make story_length required for short fiction
         if obj and obj.type == TitleType.SHORTFICTION:
             form.base_fields["story_length"].required = True
-
         return form
 
+    def display_authors(self, obj):
+        """Display authors in list view"""
+        authors = obj.author_relationships.all()
+        return ", ".join(f"{ar.author.canonical_name}" for ar in authors)
 
-class SubseriesInline(admin.TabularInline):
-    """Inline admin for subseries"""
-
-    model = Series
-    fk_name = "parent"
-    extra = 0
-    fields = ["title", "series_parent_position", "series_note"]
-    ordering = ["series_parent_position"]
-    show_change_link = True
+    display_authors.short_description = _("Authors")
 
 
 @admin.register(Series)
 class SeriesAdmin(admin.ModelAdmin):
+    inlines = [SeriesTitleInline, SeriesTransliterationInline]
     list_display = ["title", "parent", "series_parent_position"]
     search_fields = ["title"]
-    readonly_fields = ["isfdb_id"]
-    # list_filter = ["parent"]
-
-    inlines = [SubseriesInline]
+    list_select_related = ["parent"]
+    readonly_fields = ["isfdb_id", "subseries_list"]
 
     fieldsets = [
         (
@@ -134,19 +196,50 @@ class SeriesAdmin(admin.ModelAdmin):
                         "series_parent_position",
                     ),
                     "series_note",
+                    "subseries_list",
                 )
             },
         ),
     ]
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:
-            # Prevent circular references by excluding self and children
-            form.base_fields["parent"].queryset = Series.objects.exclude(
-                pk__in=[obj.pk] + list(obj.subseries.values_list("id", flat=True))
-            )
-        return form
+    def get_queryset(self, request):
+        """Optimize queryset for series admin"""
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("parent")
+            .prefetch_related("titles")
+        )
 
-    class Media:
-        css = {"all": ["admin/css/series.css"]}  # Optional custom styling
+    def subseries_list(self, obj):
+        """Display nested subseries recursively"""
+
+        def render_subseries(series, level=0):
+            result = []
+            subseries = series.subseries.select_related("parent").order_by(
+                "series_parent_position"
+            )
+
+            for sub in subseries:
+                indent = "&nbsp;" * (level * 4)
+                result.append(
+                    f'<div style="margin-left: {level * 20}px;">'
+                    f'{indent}↳ <a href="{reverse("admin:titles_series_change", args=[sub.pk])}">'
+                    f'{sub.title}</a>'
+                    f'{" (#" + str(sub.series_parent_position) + ")" if sub.series_parent_position else ""}'
+                    f'</div>'
+                )
+                # Recursively get children
+                result.extend(render_subseries(sub, level + 1))
+            return result
+
+        subseries_html = render_subseries(obj)
+        if not subseries_html:
+            return _("No subseries")
+
+        return format_html(
+            '<div style="margin-left: -20px;">{}</div>',
+            mark_safe("".join(subseries_html)),
+        )
+
+    subseries_list.short_description = _("Subseries")

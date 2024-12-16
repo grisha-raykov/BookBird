@@ -8,60 +8,86 @@
     <div class="row">
         <div class="col-md-4">
             {% if author.image_url %}
-                <img src="{{ author.image_url }}" 
-                     class="img-fluid rounded" 
+                <img src="{{ author.image_url }}"
+                     class="img-fluid rounded"
                      alt="{{ author.canonical_name }}">
             {% endif %}
         </div>
         <div class="col-md-8">
             <h1>{{ author.canonical_name }}</h1>
-            {% if author.legal_name %}
-                <p class="text-muted">{{ author.legal_name }}</p>
-            {% endif %}
-            
-            <dl class="row">
-                {% if author.birthdate %}
-                    <dt class="col-sm-3">{% trans "Born" %}</dt>
-                    <dd class="col-sm-9">
-                        {{ author.birthdate }}
-                        {% if author.birthplace %}
-                            {% trans "in" %} {{ author.birthplace }}
-                        {% endif %}
-                    </dd>
-                {% endif %}
-                
-                {% if author.deathdate %}
-                    <dt class="col-sm-3">{% trans "Died" %}</dt>
-                    <dd class="col-sm-9">{{ author.deathdate }}</dd>
-                {% endif %}
-                
-                {% if author.language %}
-                    <dt class="col-sm-3">{% trans "Language" %}</dt>
-                    <dd class="col-sm-9">{{ author.language.name }}</dd>
-                {% endif %}
-            </dl>
 
-            {% if author.notes %}
-                <h3>{% trans "About" %}</h3>
-                <div class="mb-4">{{ author.notes }}</div>
-            {% endif %}
-            
+            <!-- External links section -->
             <div class="mt-4">
                 {% if author.wikipedia_url %}
-                    <a href="{{ author.wikipedia_url }}" 
-                       class="btn btn-outline-primary me-2" 
+                    <a href="{{ author.wikipedia_url }}"
+                       class="btn btn-outline-primary me-2"
                        target="_blank">
                         {% trans "Wikipedia" %}
                     </a>
                 {% endif %}
                 {% if author.imdb_url %}
-                    <a href="{{ author.imdb_url }}" 
-                       class="btn btn-outline-primary me-2" 
+                    <a href="{{ author.imdb_url }}"
+                       class="btn btn-outline-primary me-2"
                        target="_blank">
                         {% trans "IMDb" %}
                     </a>
                 {% endif %}
             </div>
+        </div>
+    </div>
+
+    <!-- Books section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h2>{% trans "Books" %}</h2>
+
+            {% if series_titles %}
+                {% for series, titles in series_titles.items %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ series.title }}</h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for title in titles %}
+                                <a href="{% url 'titles:detail' title.pk %}"
+                                   class="list-group-item list-group-item-action">
+                                    {{ title.title }}
+                                    {% if title.first_pub_date %}
+                                        <small class="text-muted">
+                                            ({{ title.first_pub_date|date:"Y" }})
+                                        </small>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if standalone_titles %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{% trans "Standalone Books" %}</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for title in standalone_titles %}
+                            <a href="{% url 'titles:detail' title.pk %}"
+                               class="list-group-item list-group-item-action">
+                                {{ title.title }}
+                                {% if title.first_pub_date %}
+                                    <small class="text-muted">
+                                        ({{ title.first_pub_date|date:"Y" }})
+                                    </small>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if not series_titles and not standalone_titles %}
+                <p>{% trans "No books found for this author." %}</p>
+            {% endif %}
         </div>
     </div>
 </div>

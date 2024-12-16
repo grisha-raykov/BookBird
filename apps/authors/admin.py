@@ -1,20 +1,20 @@
 from django.contrib import admin
+from django.db.models import Prefetch
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from .forms import AuthorAdminForm
+from .inlines import TitleAuthorInline, AuthorTransliterationInline
 from .models import Author, AuthorTransliteration
-
-
-class AuthorTransliterationInline(admin.TabularInline):
-    model = AuthorTransliteration
-    extra = 1
-    min_num = 0
+from ..titles.inlines import AuthorPseudonymInline
+from ..titles.models import AuthorTitle
 
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
+    change_form_template = "admin/change_form.html"
     form = AuthorAdminForm
+    inlines = [AuthorTransliterationInline, TitleAuthorInline, AuthorPseudonymInline]
     list_display = [
         "canonical_name",
         "last_name",
@@ -39,10 +39,11 @@ class AuthorAdmin(admin.ModelAdmin):
         "death_year",
         "death_month",
         "death_day",
-        "views",  # Make views read-only
-        "annual_views",  # Make annual_views read-only
-        "popularity_score",  # Make popularity_score read-only
+        "views",
+        "annual_views",
+        "popularity_score",
         "display_image",
+        "isfdb_id",
     ]
 
     fieldsets = [
@@ -95,12 +96,43 @@ class AuthorAdmin(admin.ModelAdmin):
         ),
         (
             _("Additional Info"),
-            {"fields": ("notes", "isfdb_id")},
+            {"fields": ("isfdb_id",)},
         ),
     ]
 
+    def get_queryset(self, request):
+        """Optimize querysets"""
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("language")
+            .prefetch_related(
+                Prefetch(
+                    "transliterations",
+                    queryset=AuthorTransliteration.objects.only(
+                        "type", "transliterated_name", "author_id"
+                    ),
+                ),
+                Prefetch(
+                    "title_relationships",
+                    queryset=(
+                        AuthorTitle.objects.select_related(
+                            "title", "title__language"
+                        ).only(
+                            "role",
+                            "title__title",
+                            "title__type",
+                            "title__language__name",
+                            "author_id",
+                            "title_id",
+                        )
+                    ),
+                ),
+            )
+        )
+
     def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing existing object
+        if obj:
             return self.readonly_fields
         return [
             "id",
@@ -108,7 +140,7 @@ class AuthorAdmin(admin.ModelAdmin):
             "views",
             "annual_views",
             "popularity_score",
-        ]  # only these readonly for new objects
+        ]
 
     def display_image(self, obj):
         """Display author image if url is provided"""
@@ -145,8 +177,3 @@ class AuthorAdmin(admin.ModelAdmin):
                     ]
                 },
             )
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing existing object
-            return self.readonly_fields
-        return ["id", "last_name", "views", "annual_views", "popularity_score"]

@@ -1,0 +1,54 @@
+{% load static %}
+{% load i18n %}
+
+<nav class="navbar navbar-expand-lg bg-white">
+    <div class="container">
+        <!-- Logo on the left -->
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <img src="{% static 'images/full-logo-b&w.svg' %}" alt="BookBird">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+            <!-- Navigation menu items in center -->
+            <div class="navbar-nav mx-auto">
+                <div class="custom-navbar">
+                    <ul class="navbar-nav justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'authors' %}active{% endif %}"
+                               href="{% url 'authors:list' %}">
+                                <i class="bi bi-people-fill nav-icon-authors"></i> Authors
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'titles' %}active{% endif %}"
+                               href="{% url 'titles:list' %}">
+                                <i class="bi bi-book-fill nav-icon-books"></i> {% trans "Books" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-grid-fill nav-icon-categories"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-info-circle-fill nav-icon-about"></i> About
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- User menu on the right -->
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    {% include 'includes/user_menu.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

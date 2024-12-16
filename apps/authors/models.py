@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -6,7 +7,6 @@ from BookBird.mixins import DateComponentsMixin
 from apps.languages.models import Language
 
 
-# Create your models here.
 class Author(models.Model, DateComponentsMixin):
     canonical_name = models.TextField(
         blank=False,
@@ -128,12 +128,6 @@ class Author(models.Model, DateComponentsMixin):
         null=True,
     )
 
-    notes = models.TextField(
-        blank=True,
-        null=True,
-        help_text=_("Additional notes about the author. Supports markdown"),
-    )
-
     isfdb_id = models.PositiveBigIntegerField(
         blank=True,
         null=True,
@@ -225,6 +219,48 @@ class Author(models.Model, DateComponentsMixin):
             self.deathdate = ""
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        if hasattr(self, "canonical_name") and self.canonical_name:
+            return self.canonical_name
+
+
+class AuthorPseudonym(models.Model):
+    """Model for managing author pseudonyms"""
+
+    pseudonym = models.OneToOneField(
+        "Author",
+        on_delete=models.CASCADE,
+        related_name="real_author",
+        verbose_name=_("Pseudonym"),
+        help_text=_("The pseudonym author entry"),
+    )
+
+    real_name = models.ForeignKey(
+        "Author",
+        on_delete=models.CASCADE,
+        related_name="pseudonyms",
+        verbose_name=_("Real Name"),
+        help_text=_("The author's real identity"),
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text=_("Additional notes about this pseudonym"),
+    )
+
+    class Meta:
+        verbose_name = _("Author Pseudonym")
+        verbose_name_plural = _("Author Pseudonyms")
+        ordering = ["pseudonym__last_name"]
+
+    def clean(self):
+        if self.real_name == self.pseudonym:
+            raise ValidationError(_("An author cannot be their own pseudonym"))
+
+    def __str__(self):
+        return f"{self.real_name} → {self.pseudonym}"
+
 
 class AuthorTransliteration(models.Model):
     """Model for storing romanized transliterations of author names"""
@@ -250,13 +286,6 @@ class AuthorTransliteration(models.Model):
         ],
         default="CANONICAL",
         help_text=_("Type of name being transliterated"),
-    )
-
-    notes = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes about this transliteration"),
     )
 
     class Meta:

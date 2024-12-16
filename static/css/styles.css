@@ -7,7 +7,12 @@ body {
 .navbar {
     padding: 0.5rem 0;
     background-color: #fff;
+    margin-bottom: 0;
 
+}
+
+.navbar .container {
+    position: relative;
 }
 
 .navbar-brand img {
@@ -34,7 +39,7 @@ body {
 .input-group {
     height: 50px;
     width: 100%;
-    margin-top: 0rem;
+    margin-top: -2rem;
 }
 
 .input-group .form-control {
@@ -88,15 +93,17 @@ body {
 /* Bottom navbar */
 .custom-navbar {
     background-color: #000080;
-    padding: 0.5rem 0;
+    padding-left: 10rem;
+    padding-right: 10rem;
     border-radius: 10px;
-    margin: 1rem 2rem;
-    max-width: 50%;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .custom-navbar .navbar-nav {
     display: flex;
     align-items: center;
+    gap: 4rem;
 }
 
 .custom-navbar .nav-link {
