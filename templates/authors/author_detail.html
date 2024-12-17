@@ -1,94 +1,35 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load publication_tags %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
 <div class="container my-4">
-    <div class="row">
-        <div class="col-md-4">
-            {% if author.image_url %}
-                <img src="{{ author.image_url }}"
-                     class="img-fluid rounded"
-                     alt="{{ author.canonical_name }}">
-            {% endif %}
-        </div>
-        <div class="col-md-8">
-            <h1>{{ author.canonical_name }}</h1>
+    {% include "authors/includes/author_info.html" %}
 
-            <!-- External links section -->
-            <div class="mt-4">
-                {% if author.wikipedia_url %}
-                    <a href="{{ author.wikipedia_url }}"
-                       class="btn btn-outline-primary me-2"
-                       target="_blank">
-                        {% trans "Wikipedia" %}
-                    </a>
-                {% endif %}
-                {% if author.imdb_url %}
-                    <a href="{{ author.imdb_url }}"
-                       class="btn btn-outline-primary me-2"
-                       target="_blank">
-                        {% trans "IMDb" %}
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Books section -->
     <div class="row mt-4">
         <div class="col-12">
-            <h2>{% trans "Books" %}</h2>
+            <h2 class="mb-4">
+                <i class="bi bi-book"></i> {% trans "Books" %}
+            </h2>
 
-            {% if series_titles %}
-                {% for series, titles in series_titles.items %}
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="mb-0">{{ series.title }}</h5>
-                        </div>
-                        <div class="list-group list-group-flush">
-                            {% for title in titles %}
-                                <a href="{% url 'titles:detail' title.pk %}"
-                                   class="list-group-item list-group-item-action">
-                                    {{ title.title }}
-                                    {% if title.first_pub_date %}
-                                        <small class="text-muted">
-                                            ({{ title.first_pub_date|date:"Y" }})
-                                        </small>
-                                    {% endif %}
-                                </a>
-                            {% endfor %}
+            <div class="row g-4">
+                {% for title in titles %}
+                    <div class="col-12 col-sm-6 col-md-4 col-xl-3">
+                        {% include "titles/includes/title_card.html" with title=title %}
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans "No books found for this author." %}
                         </div>
                     </div>
                 {% endfor %}
-            {% endif %}
-
-            {% if standalone_titles %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">{% trans "Standalone Books" %}</h5>
-                    </div>
-                    <div class="list-group list-group-flush">
-                        {% for title in standalone_titles %}
-                            <a href="{% url 'titles:detail' title.pk %}"
-                               class="list-group-item list-group-item-action">
-                                {{ title.title }}
-                                {% if title.first_pub_date %}
-                                    <small class="text-muted">
-                                        ({{ title.first_pub_date|date:"Y" }})
-                                    </small>
-                                {% endif %}
-                            </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            {% if not series_titles and not standalone_titles %}
-                <p>{% trans "No books found for this author." %}</p>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

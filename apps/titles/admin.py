@@ -70,7 +70,15 @@ class TitleAdmin(admin.ModelAdmin):
     fieldsets = [
         (
             None,
-            {"fields": ("title", "type", "story_length", "language", "first_pub_date")},
+            {
+                "fields": (
+                    "title",
+                    "type",
+                    "story_length",
+                    "language",
+                    "first_pub_date",
+                )
+            },
         ),
         (
             _("Title Relationships"),
@@ -229,7 +237,6 @@ class SeriesAdmin(admin.ModelAdmin):
                     f'{" (#" + str(sub.series_parent_position) + ")" if sub.series_parent_position else ""}'
                     f'</div>'
                 )
-                # Recursively get children
                 result.extend(render_subseries(sub, level + 1))
             return result
 

@@ -41,34 +41,31 @@ class AuthorListView(ListView):
 
 
 class AuthorDetailView(DetailView):
-    """Display author details"""
-
     model = Author
     template_name = "authors/author_detail.html"
     context_object_name = "author"
 
     def get_queryset(self):
-        return Author.objects.select_related("language").prefetch_related(
-            "titles__series", "titles__language"
-        )
+        return Author.objects.select_related("language")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = self.object.canonical_name
-
-        # Group titles by series
-        titles = self.object.titles.all()
-        series_titles = {}
-        standalone_titles = []
+        titles = self.object.titles.all().order_by("-views")[:20]
 
         for title in titles:
-            if title.series:
-                if title.series not in series_titles:
-                    series_titles[title.series] = []
-                series_titles[title.series].append(title)
-            else:
-                standalone_titles.append(title)
+            if not title.publication_appearances.filter(
+                publication__image_url__isnull=False
+            ).exists():
+                next_oldest_publication = (
+                    title.publication_appearances.filter(
+                        publication__image_url__isnull=False
+                    )
+                    .order_by("publication__publication_date")
+                    .first()
+                )
+                if next_oldest_publication:
+                    title.publication_appearances = [next_oldest_publication]
 
-        context["series_titles"] = series_titles
-        context["standalone_titles"] = standalone_titles
+        context["titles"] = titles
         return context

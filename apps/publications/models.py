@@ -4,16 +4,24 @@ from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import ValidationError
 from BookBird.mixins import DateComponentsMixin
+from apps.core.models import ISFDBBase, TransliterationBase
 from apps.publications.choices import PublicationFormat, PublicationType
 
 
-class Publication(models.Model, DateComponentsMixin):
+class Publication(ISFDBBase, models.Model, DateComponentsMixin):
     """Model representing specific publications of works"""
 
     title = models.TextField(
         blank=False,
         null=False,
         help_text=_("Title of the publication"),
+    )
+
+    authors = models.ManyToManyField(
+        "authors.Author",
+        through="PublicationAuthor",
+        related_name="publications",
+        help_text=_("Author/s of the publication"),
     )
 
     isfdb_tag = models.CharField(
@@ -24,7 +32,7 @@ class Publication(models.Model, DateComponentsMixin):
     )
 
     publication_date = models.CharField(
-        max_length=10,
+        max_length=12,
         blank=True,
         null=True,
         help_text=_("Publication date in YYYY-MM-DD, YYYY-MM, or YYYY format"),
@@ -43,7 +51,7 @@ class Publication(models.Model, DateComponentsMixin):
         max_length=255,
         blank=True,
         null=True,
-        help_text=_("Number of pages"),
+        help_text=_("Number of pages in the publication"),
     )
 
     format = models.CharField(
@@ -64,10 +72,16 @@ class Publication(models.Model, DateComponentsMixin):
     )
 
     isbn = models.CharField(
-        max_length=13,
+        max_length=100,
         blank=True,
         null=True,
         help_text=_("ISBN-10 or ISBN-13"),
+    )
+
+    image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text=_("URL of the publication's cover image"),
     )
 
     price = models.CharField(
@@ -86,7 +100,8 @@ class Publication(models.Model, DateComponentsMixin):
         help_text=_("Publication series this belongs to"),
     )
 
-    series_number = models.PositiveIntegerField(
+    series_number = models.CharField(
+        max_length=255,
         blank=True,
         null=True,
         help_text=_("Position within the publication series"),
@@ -97,14 +112,6 @@ class Publication(models.Model, DateComponentsMixin):
         blank=True,
         null=True,
         help_text=_("Catalog ID of the publication"),
-    )
-
-    isfdb_id = models.PositiveBigIntegerField(
-        blank=True,
-        null=True,
-        unique=True,
-        help_text=_("ISFDB publication ID"),
-        db_index=True,
     )
 
     class Meta:
@@ -126,8 +133,15 @@ class Publication(models.Model, DateComponentsMixin):
         if self.publication_date:
             try:
                 self.parse_date_display(self.publication_date, "publication_date")
-            except ValidationError as e:
-                raise ValidationError({"publication_date": e})
+            except ValidationError:
+                raise ValidationError(
+                    {
+                        "publication_date": ValidationError(
+                            _("Invalid date format. Use YYYY, YYYY-MM, or YYYY-MM-DD"),
+                            code="invalid_date",
+                        )
+                    }
+                )
         super().clean()
 
 
@@ -201,11 +215,10 @@ class PublicationSeries(models.Model):
         return self.name
 
     def clean(self):
-        """Validate publication series data"""
         super().clean()
 
 
-class PublicationSeriesTransliteration(models.Model):
+class PublicationSeriesTransliteration(TransliterationBase):
     """Model for storing romanized transliterations of publication series names"""
 
     publication_series = models.ForeignKey(
@@ -214,11 +227,6 @@ class PublicationSeriesTransliteration(models.Model):
         related_name="transliterations",
         verbose_name=_("Publication Series"),
         help_text=_("The original publication series this transliteration belongs to"),
-    )
-
-    transliterated_text = models.TextField(
-        verbose_name=_("Romanized Text"),
-        help_text=_("Romanized version of the publication series name"),
     )
 
     class Meta:
@@ -230,7 +238,7 @@ class PublicationSeriesTransliteration(models.Model):
         return self.transliterated_text
 
 
-class PublisherTransliteration(models.Model):
+class PublisherTransliteration(TransliterationBase):
     """Model for storing romanized transliterations of publisher names"""
 
     publisher = models.ForeignKey(
@@ -241,11 +249,6 @@ class PublisherTransliteration(models.Model):
         help_text=_("The original publisher this transliteration belongs to"),
     )
 
-    transliterated_text = models.TextField(
-        verbose_name=_("Romanized Text"),
-        help_text=_("Romanized version of the publisher name"),
-    )
-
     class Meta:
         verbose_name = _("Publisher Transliteration")
         verbose_name_plural = _("Publisher Transliterations")
@@ -253,3 +256,72 @@ class PublisherTransliteration(models.Model):
 
     def __str__(self):
         return self.transliterated_text
+
+
+class PublicationAuthor(models.Model):
+    """Model for Publication-Author relationship"""
+
+    author = models.ForeignKey(
+        "authors.Author",
+        on_delete=models.CASCADE,
+        related_name="publication_relationships",
+        help_text=_("Author of the publication"),
+    )
+
+    publication = models.ForeignKey(
+        "Publication",
+        on_delete=models.CASCADE,
+        related_name="author_relationships",
+        help_text=_("Publication by this author"),
+    )
+
+    class Meta:
+        verbose_name = _("Publication Author")
+        verbose_name_plural = _("Publication Authors")
+        unique_together = ["author", "publication"]
+        indexes = [
+            models.Index(fields=["author"]),
+            models.Index(fields=["publication"]),
+        ]
+
+    def __str__(self):
+        return f"{self.author} - {self.publication}"
+
+
+class PublicationTitle(ISFDBBase):
+    """Model representing the relationship between titles and publications"""
+
+    title = models.ForeignKey(
+        "titles.Title",
+        on_delete=models.CASCADE,
+        related_name="publication_appearances",
+        help_text=_("Title appearing in this publication"),
+    )
+
+    publication = models.ForeignKey(
+        "publications.Publication",
+        on_delete=models.CASCADE,
+        related_name="contained_titles",
+        help_text=_("Publication containing this title"),
+    )
+
+    page = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_("Page number where the title appears in the publication"),
+    )
+
+    class Meta:
+        verbose_name = _("Publication Title")
+        verbose_name_plural = _("Publication Titles")
+        ordering = ["publication", "page"]
+        indexes = [
+            models.Index(fields=["isfdb_id"]),
+            models.Index(fields=["title"]),
+            models.Index(fields=["publication"]),
+        ]
+
+    def __str__(self):
+        page_info = f" (p. {self.page})" if self.page else ""
+        return f"{self.title.title} in {self.publication}{page_info}"

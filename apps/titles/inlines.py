@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from apps.authors.models import AuthorPseudonym
 from apps.titles.models import (
     Title,
     TitleTransliteration,
@@ -28,7 +27,6 @@ class VariantTitleInline(admin.TabularInline):
     can_delete = False
 
     def get_queryset(self, request):
-        """Optimize inline queryset"""
         return (
             super()
             .get_queryset(request)
@@ -51,7 +49,6 @@ class SeriesTitleInline(admin.TabularInline):
     verbose_name_plural = _("Titles in Series")
 
     def get_queryset(self, request):
-        """Optimize inline queryset"""
         return (
             super()
             .get_queryset(request)
@@ -84,13 +81,3 @@ class SeriesTransliterationInline(admin.TabularInline):
     model = SeriesTransliteration
     extra = 1
     min_num = 0
-
-
-class AuthorPseudonymInline(admin.TabularInline):
-    """Inline admin for author pseudonyms"""
-
-    model = AuthorPseudonym
-    fk_name = "real_name"
-    extra = 1
-    verbose_name = _("Pseudonym")
-    verbose_name_plural = _("Pseudonyms")

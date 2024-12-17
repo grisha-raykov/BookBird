@@ -20,6 +20,9 @@ class IndexView(TemplateView):
                 "recent_titles": Title.objects.filter(is_canonical=True).order_by(
                     "-first_pub_date"
                 )[:6],
+                "popular_titles": Title.objects.all()
+                .order_by("-annual_views")
+                .distinct()[:9],
             }
         )
         return context

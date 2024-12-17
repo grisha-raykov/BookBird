@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<nav aria-label="{% trans 'Series navigation' %}">
+    <ol class="breadcrumb mb-0">
+        {% with series=title.series %}
+            {% if series %}
+                {% with parent_series=series.get_ancestors %}
+                    {% for parent in parent_series %}
+                        <li class="breadcrumb-item">
+                            {{ parent.title }}
+                        </li>
+                    {% endfor %}
+                    <li class="breadcrumb-item active">
+                        {{ series.title }}
+                        {% if title.series_position %}
+                            <span class="badge bg-secondary ms-2">
+                                #{{ title.series_position }}
+                            </span>
+                        {% endif %}
+                    </li>
+                {% endwith %}
+            {% endif %}
+        {% endwith %}
+    </ol>
+</nav>

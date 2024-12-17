@@ -93,8 +93,8 @@ body {
 /* Bottom navbar */
 .custom-navbar {
     background-color: #000080;
-    padding-left: 10rem;
-    padding-right: 10rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
     border-radius: 10px;
     width: 100%;
     margin: 0 auto;

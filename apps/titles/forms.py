@@ -16,7 +16,6 @@ class TitleAdminForm(forms.ModelForm):
         """Validate form data"""
         cleaned_data = super().clean()
 
-        # Validate in form for better user feedback
         TitleValidator.validate_hierarchy(
             cleaned_data.get("parent_title"),
             cleaned_data.get("is_canonical"),

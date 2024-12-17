@@ -1,0 +1,6 @@
+{% if publication and publication.image_url %}
+    <img src="{{ publication.image_url }}"
+         class="img-fluid rounded"
+         alt="{{ publication.title }}"
+         loading="lazy">
+{% endif %}

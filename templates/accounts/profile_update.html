@@ -1,0 +1,28 @@
+<!-- templates/accounts/profile_update.html -->
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Update Profile" %}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary bg-gradient text-white py-3">
+                    <h4 class="card-title mb-0">{% trans "Update Profile" %}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            {% trans "Save Changes" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

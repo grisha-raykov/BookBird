@@ -1,45 +1,88 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load publication_tags %}
 
 {% block title %}{{ title.title }}{% endblock %}
 
 {% block content %}
-    <div class="container my-4">
-        <div class="row">
-            <div class="col-md-8">
-                <h1>{{ title.title }}</h1>
+<div class="container my-4">
+    <div class="row">
+        <!-- Cover -->
+        <div class="col-md-4 mb-4">
+            {% if publication_cover %}
+                <div class="card">
+                    <img src="{{ publication_cover.publication.image_url }}"
+                         class="img-fluid rounded"
+                         alt="{{ title.title }}"
+                    >
+                </div>
+            {% endif %}
+        </div>
 
-                {% if title.authors.exists %}
-                    <h5 class="text-muted">
-                        {% for author in title.authors.all %}
-                            <a href="{% url 'authors:detail' author.pk %}" class="text-decoration-none">
-                                {{ author.canonical_name }}
-                            </a>
-                            {% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </h5>
-                {% endif %}
+        <!-- Details -->
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ title.title }}</h1>
 
-                {% if title.first_pub_date %}
-                    <p class="text-muted">
-                        {{ title.first_pub_date|date:"Y" }}
-                    </p>
-                {% endif %}
+            <!-- Authors -->
+            {% if title.authors.exists %}
+                <h5 class="text-muted mb-4">
+                    {% for author in title.authors.all %}
+                        <a href="{% url 'authors:detail' author.pk %}"
+                           class="text-decoration-none">
+                            {{ author.canonical_name }}
+                        </a>
+                        {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </h5>
+            {% endif %}
 
-                {% if title.language %}
-                    <p>
-                        <strong>{% trans "Language" %}:</strong> {{ title.language.name }}
-                    </p>
-                {% endif %}
+            <!-- Series Info -->
+            {% if title.series %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">{% trans "Series" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% include "titles/includes/series_breadcrumb.html" %}
+                    </div>
+                </div>
+            {% endif %}
 
-                <p>
-                    <small class="text-muted">
-                        {% blocktranslate with views=title.views %}
-                            {{ views }} views
-                        {% endblocktranslate %}
-                    </small>
-                </p>
-            </div>
+            <!-- Publications/Editions -->
+            {% if title.publication_appearances.exists %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{% trans "Editions" %}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            {% for pub_title in title.publication_appearances.all %}
+                                <div class="col-6 col-md-4 col-lg-3 p-2">
+                                    <div class="card h-100">
+                                        {% if pub_title.publication.image_url %}
+                                            <img src="{{ pub_title.publication.image_url }}"
+                                                 class="card-img-top"
+                                                 alt="{{ pub_title.publication.title }}"
+                                                 loading="lazy">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ pub_title.publication.title }}</h6>
+                                            {% if pub_title.publication.publication_date %}
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        {{ pub_title.publication.publication_date|slice:":4" }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
+</div>
 {% endblock %}

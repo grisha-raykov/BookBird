@@ -3,8 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class TitleValidator:
-    """Validators for Title model"""
-
     @classmethod
     def validate_hierarchy(cls, parent_title, is_canonical):
         """Validate title parent-child relationships"""

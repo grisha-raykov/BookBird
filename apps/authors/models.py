@@ -4,10 +4,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from BookBird.mixins import DateComponentsMixin
+from apps.core.models import ISFDBBase, StatsBase, TransliterationBase
 from apps.languages.models import Language
 
 
-class Author(models.Model, DateComponentsMixin):
+class Author(ISFDBBase, StatsBase, DateComponentsMixin):
     canonical_name = models.TextField(
         blank=False,
         null=False,
@@ -108,31 +109,10 @@ class Author(models.Model, DateComponentsMixin):
         null=True,
         help_text=_("URL of the author's IMDb page"),
     )
-    views = models.PositiveIntegerField(
-        default=0,
-        help_text=_("Total number of author page views"),
-    )
-
-    annual_views = models.PositiveIntegerField(
-        default=0,
-        help_text=_("Number of views in the last year"),
-    )
-
-    popularity_score = models.PositiveIntegerField(
-        default=0,
-        help_text=_("Calculated popularity score (0-100)"),
-    )
 
     image_url = models.URLField(
         blank=True,
         null=True,
-    )
-
-    isfdb_id = models.PositiveBigIntegerField(
-        blank=True,
-        null=True,
-        unique=True,
-        help_text=_("ISFDB author ID"),
     )
 
     def clean(self) -> None:
@@ -193,6 +173,7 @@ class Author(models.Model, DateComponentsMixin):
         Generate last_name from canonical_name if not provided.
         Called automatically on model save.
         """
+
         if self.canonical_name and not self.last_name:
             # Take the last word from canonical name as family name
             self.last_name = self.canonical_name.split()[-1]
@@ -218,6 +199,15 @@ class Author(models.Model, DateComponentsMixin):
         else:
             self.deathdate = ""
         super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = _("Author")
+        verbose_name_plural = _("Authors")
+        ordering = ["last_name", "canonical_name"]
+        indexes = [
+            models.Index(fields=["last_name"]),
+            models.Index(fields=["canonical_name"]),
+        ]
 
     def __str__(self):
         if hasattr(self, "canonical_name") and self.canonical_name:
@@ -262,7 +252,7 @@ class AuthorPseudonym(models.Model):
         return f"{self.real_name} → {self.pseudonym}"
 
 
-class AuthorTransliteration(models.Model):
+class AuthorTransliteration(TransliterationBase):
     """Model for storing romanized transliterations of author names"""
 
     author = models.ForeignKey(
@@ -271,11 +261,6 @@ class AuthorTransliteration(models.Model):
         related_name="transliterations",
         verbose_name=_("Author"),
         help_text=_("The author this transliteration belongs to"),
-    )
-
-    transliterated_name = models.TextField(
-        verbose_name=_("Romanized Name"),
-        help_text=_("Romanized version of the author's name"),
     )
 
     type = models.CharField(
@@ -291,8 +276,8 @@ class AuthorTransliteration(models.Model):
     class Meta:
         verbose_name = _("Author Transliteration")
         verbose_name_plural = _("Author Transliterations")
-        ordering = ["transliterated_name"]
+        ordering = ["transliterated_text"]
         unique_together = ["author", "type"]
 
     def __str__(self):
-        return self.transliterated_name
+        return self.transliterated_text or "No transliteration"

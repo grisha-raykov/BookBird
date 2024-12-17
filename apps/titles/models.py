@@ -4,14 +4,14 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from BookBird.mixins import DateComponentsMixin
-from apps.core.models import Note
+from apps.core.models import Note, ISFDBBase, StatsBase, TransliterationBase
 from apps.languages.models import Language
 from apps.titles.choices import TitleType, StoryLength, AuthorRole
 from apps.titles.validators import TitleValidator
 
 
 # Create your models here.
-class Title(models.Model, DateComponentsMixin):
+class Title(ISFDBBase, StatsBase, DateComponentsMixin):
     title = models.TextField(
         blank=False,
         null=False,
@@ -21,7 +21,7 @@ class Title(models.Model, DateComponentsMixin):
     language = models.ForeignKey(
         Language,
         null=True,
-        on_delete=models.PROTECT,  # Prevent language deletion if titles exist
+        on_delete=models.PROTECT,
         related_name="titles",
         help_text=_("Primary language of this title"),
     )
@@ -127,27 +127,11 @@ class Title(models.Model, DateComponentsMixin):
         default=TitleType.NOVEL,
         help_text=_("Type of the title (e.g. Novel, Collection, Anthology)"),
     )
-    isfdb_id = models.IntegerField(
-        blank=True,
-        null=True,
-        unique=True,
-        help_text=_("ISFDB ID for this title"),
-    )
 
     synopsis = models.TextField(
         blank=True,
         null=True,
         help_text=_("Synopsis of the work"),
-    )
-
-    views = models.PositiveIntegerField(
-        default=0,
-        help_text=_("Total number of title page views"),
-    )
-
-    annual_views = models.PositiveIntegerField(
-        default=0,
-        help_text=_("Number of views in the last year"),
     )
 
     series_position = models.DecimalField(
@@ -170,8 +154,6 @@ class Title(models.Model, DateComponentsMixin):
     notes = GenericRelation(Note)
 
     def clean(self):
-        """Validate model data"""
-        # Always validate at model level
         TitleValidator.validate_hierarchy(
             self.parent_title,
             self.is_canonical,
@@ -217,7 +199,7 @@ class Title(models.Model, DateComponentsMixin):
         verbose_name_plural = _("Titles")
 
 
-class TitleTransliteration(models.Model):
+class TitleTransliteration(TransliterationBase):
     """Model for storing romanized transliterations of titles"""
 
     title = models.ForeignKey(
@@ -226,10 +208,6 @@ class TitleTransliteration(models.Model):
         related_name="transliterations",
         verbose_name=_("Title"),
         help_text=_("The original title this transliteration belongs to"),
-    )
-
-    transliterated_text = models.TextField(
-        verbose_name=_("Romanized Text"), help_text=_("Romanized version of the title")
     )
 
     class Meta:
@@ -278,22 +256,10 @@ class Series(models.Model):
         help_text=_("ISFDB ID for this series"),
     )
 
-    class Meta:
-        verbose_name = _("Series")
-        verbose_name_plural = _("Series")
-        ordering = ["title"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["parent", "series_parent_position"],
-                name="unique_series_position",
-            )
-        ]
-
     def __str__(self):
         return self.title
 
     def clean(self):
-        """Validate series data"""
         from django.core.exceptions import ValidationError
 
         # Prevent self-referential parent
@@ -333,6 +299,7 @@ class Series(models.Model):
             )
         ]
 
+
 class SeriesTransliteration(models.Model):
     """Model for storing romanized transliterations of series names"""
 
@@ -346,7 +313,7 @@ class SeriesTransliteration(models.Model):
 
     transliterated_text = models.TextField(
         verbose_name=_("Romanized Text"),
-        help_text=_("Romanized version of the series name")
+        help_text=_("Romanized version of the series name"),
     )
 
     class Meta:
@@ -356,6 +323,7 @@ class SeriesTransliteration(models.Model):
 
     def __str__(self):
         return self.transliterated_text
+
 
 class AuthorTitle(models.Model):
     """Intermediary model for Author-Title relationship with role information"""

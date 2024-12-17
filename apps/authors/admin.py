@@ -3,18 +3,20 @@ from django.db.models import Prefetch
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .forms import AuthorAdminForm
-from .inlines import TitleAuthorInline, AuthorTransliterationInline
+from .inlines import (
+    AuthorTransliterationInline,
+    AuthorPseudonymInline,
+    AuthorTitleInline,
+)
 from .models import Author, AuthorTransliteration
-from ..titles.inlines import AuthorPseudonymInline
 from ..titles.models import AuthorTitle
 
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
     change_form_template = "admin/change_form.html"
-    form = AuthorAdminForm
-    inlines = [AuthorTransliterationInline, TitleAuthorInline, AuthorPseudonymInline]
+    # form = AuthorAdminForm
+    inlines = [AuthorTransliterationInline, AuthorPseudonymInline, AuthorTitleInline]
     list_display = [
         "canonical_name",
         "last_name",
@@ -28,6 +30,7 @@ class AuthorAdmin(admin.ModelAdmin):
     search_fields = [
         "canonical_name",
         "last_name",
+        "legal_name",
     ]
 
     readonly_fields = [
@@ -54,7 +57,7 @@ class AuthorAdmin(admin.ModelAdmin):
                     "canonical_name",
                     "legal_name",
                     "last_name",
-                    ("transliterated_canonical_name", "transliterated_legal_name"),
+                    # ("transliterated_canonical_name", "transliterated_legal_name"),
                     "language",
                 )
             },
@@ -108,12 +111,6 @@ class AuthorAdmin(admin.ModelAdmin):
             .select_related("language")
             .prefetch_related(
                 Prefetch(
-                    "transliterations",
-                    queryset=AuthorTransliteration.objects.only(
-                        "type", "transliterated_name", "author_id"
-                    ),
-                ),
-                Prefetch(
                     "title_relationships",
                     queryset=(
                         AuthorTitle.objects.select_related(
@@ -143,13 +140,22 @@ class AuthorAdmin(admin.ModelAdmin):
         ]
 
     def display_image(self, obj):
-        """Display author image if url is provided"""
-        if obj.image_url:
+        """Display author image if url is provided with fallback for failed loads"""
+        if not obj.image_url:
             return format_html(
                 '<img src="{}" style="max-height: 200px; max-width: 200px;" />',
-                obj.image_url,
+                "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
             )
-        return _("No image available")
+
+        return format_html(
+            """
+            <img src="{}" 
+                 style="max-height: 200px; max-width: 200px;"
+                 onerror="this.onerror=null; this.src='{}'" />
+        """,
+            obj.image_url,
+            "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+        )
 
     display_image.short_description = _("Image")
 
@@ -161,7 +167,7 @@ class AuthorAdmin(admin.ModelAdmin):
                 author=obj,
                 type="CANONICAL",
                 defaults={
-                    "transliterated_name": form.cleaned_data[
+                    "transliterated_text": form.cleaned_data[
                         "transliterated_canonical_name"
                     ]
                 },
@@ -172,7 +178,7 @@ class AuthorAdmin(admin.ModelAdmin):
                 author=obj,
                 type="LEGAL",
                 defaults={
-                    "transliterated_name": form.cleaned_data[
+                    "transliterated_text": form.cleaned_data[
                         "transliterated_legal_name"
                     ]
                 },

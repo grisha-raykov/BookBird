@@ -1,0 +1,30 @@
+{% extends "admin/edit_inline/tabular.html" %}
+{% load i18n %}
+
+{% block field_sets %}
+{{ block.super }}
+
+{% with page_obj=inline_admin_formset.opts._page_obj %}
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="paginator">
+    {% if page_obj.has_previous %}
+        <a href="?title_page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+            {% trans "Previous" %}
+        </a>
+    {% endif %}
+
+    <span class="current">
+        {% blocktranslate with number=page_obj.number total=page_obj.paginator.num_pages %}
+            Page {{ number }} of {{ total }}
+        {% endblocktranslate %}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?title_page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+            {% trans "Next" %}
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}

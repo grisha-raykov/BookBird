@@ -1,0 +1,48 @@
+{% load i18n %}
+{% load publication_tags %}
+
+<div class="card h-100">
+    <div class="row g-0">
+        <div class="col-4">
+            {% publication_cover title.publication_appearances %}
+        </div>
+        <div class="col-8">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'titles:detail' title.pk %}" class="text-decoration-none">
+                        {{ title.title }}
+                    </a>
+                </h5>
+                {% if title.series %}
+                    <p class="card-text">
+                        <small class="text-muted">
+                            {{ title.series.title }}
+                            {% if title.series_position %}
+                                <span class="badge bg-secondary">
+                                    #{{ title.series_position }}
+                                </span>
+                            {% endif %}
+                        </small>
+                    </p>
+                {% endif %}
+                {% if title.type %}
+                    <p class="card-text">
+                        <small class="text-muted">{{ title.get_type_display }}</small>
+                    </p>
+                {% endif %}
+                {% if title.first_pub_date %}
+                    <p class="card-text">
+                        <small class="text-muted">{{ title.first_pub_date|date:"Y" }}</small>
+                    </p>
+                {% endif %}
+                <p class="card-text">
+                    <small class="text-muted">
+                        {% blocktranslate with views=title.annual_views %}
+                            {{ views }} views
+                        {% endblocktranslate %}
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

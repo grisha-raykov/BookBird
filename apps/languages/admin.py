@@ -15,8 +15,7 @@ class LanguageAdmin(admin.ModelAdmin):
     ]
 
     def get_readonly_fields(self, request, obj=None):
-        # Make code readonly if this is an existing object
-        if obj:  # editing an existing object
+        if obj:
             return self.readonly_fields + [
                 "code",
                 "name",

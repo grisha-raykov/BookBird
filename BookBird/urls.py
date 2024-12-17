@@ -24,5 +24,7 @@ urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("admin/", admin.site.urls),
     path("authors/", include("apps.authors.urls")),
-    path("books/", include("apps.titles.urls")),
+    path("publications/", include("apps.publications.urls")),
+    path("titles/", include("apps.titles.urls")),  # Keep titles URLs for detail views
+    path("accounts/", include("apps.accounts.urls")),
 ]
