@@ -1,0 +1,25 @@
+{% load i18n %}
+
+
+{% if user.is_authenticated %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-bookmark"></i> {% trans "Reading Lists" %}</h5>
+        </div>
+        <div class="card-body">
+            {% with first_pub=title.publication_appearances.first %}
+                {% if first_pub %}
+                    {% if user_lists %}
+                        {% include "titles/includes/list_items.html" %}
+                    {% endif %}
+                    <button class="btn btn-primary w-100" type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addToListModal">
+                        <i class="bi bi-bookmark-plus"></i>
+                        {% trans "Add to List" %}
+                    </button>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+{% endif %}

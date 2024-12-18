@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Search Results" %} - {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">{% trans "Search Results" %} {% if query %}<small class="text-muted">{{ query }}</small>{% endif %}</h1>
+
+    {% if query %}
+        {% if not results.titles and not results.authors and not results.series and not results.publications %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                {% trans "No results found." %}
+            </div>
+        {% else %}
+            <!-- Authors -->
+            {% if results.authors %}
+                <h2 class="h4 mb-3">{% trans "Authors" %}</h2>
+                <div class="row g-4 mb-5">
+                    {% for author in results.authors %}
+                        <div class="col-md-6 col-lg-4">
+                            {% include "authors/includes/author_card.html" with author=author %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Titles -->
+            {% if results.titles %}
+                <h2 class="h4 mb-3">{% trans "Books" %}</h2>
+                <div class="row g-4 mb-5">
+                    {% for title in results.titles %}
+                        <div class="col-md-6 col-lg-4">
+                            {% include "titles/includes/title_card.html" with title=title %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Series -->
+            {% if results.series %}
+                <h2 class="h4 mb-3">{% trans "Series" %}</h2>
+                <div class="list-group mb-5">
+                    {% for series in results.series %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <h5 class="mb-1">{{ series.title }}</h5>
+                            <small class="text-muted">{% trans "Books" %}: {{ series.titles.count }}</small>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Publications -->
+            {% if results.publications %}
+                <h2 class="h4 mb-3">{% trans "Publications" %}</h2>
+                <div class="row g-4 mb-5">
+                    {% for publication in results.publications %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100">
+                                {% if publication.image_url %}
+                                    <img src="{{ publication.image_url }}" 
+                                         class="card-img-top" 
+                                         alt="{{ publication.title }}">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ publication.title }}</h5>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            ISBN: {{ publication.isbn }}
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            {% trans "Please enter a search term." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

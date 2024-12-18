@@ -308,3 +308,100 @@ body {
 .bg-primary {
     background-color: #000080 !important;
 }
+
+/* Auth Form styling */
+.auth-form .form-control {
+    border: none;
+    border-bottom: 2px solid #e9ecef;
+    border-radius: 0;
+    padding: 0.8rem 3rem;
+    height: 3.2rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-form .input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 2.5rem;
+}
+
+.auth-form .input-group-text {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    z-index: 3;
+    padding: 0.8rem 1rem;
+    color: #000080;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+.auth-form .form-control:focus {
+    box-shadow: none;
+    border-color: #000080;
+}
+
+.auth-form .invalid-tooltip {
+    position: absolute;
+    bottom: -2rem;
+    left: 0;
+    z-index: 2;
+    width: 100%;
+    font-size: 0.875rem;
+    color: #dc3545;
+    background: none;
+    padding: 0.25rem 0;
+}
+
+.auth-form .has-validation .form-control {
+    border-color: #dc3545;
+}
+
+.auth-form .form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+.auth-form label {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.auth-form .text-danger {
+    color: #dc3545;
+}
+
+.rating-input {
+    display: none;
+}
+
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.rating label {
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ddd;
+}
+
+.rating label:hover,
+.rating label:hover ~ label,
+.rating input:checked ~ label {
+    color: #ffc107;
+}
+
+.rating label i {
+    font-size: 2rem;
+}

@@ -1,0 +1,74 @@
+{% load i18n %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Basic Information" %}</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-sm-6">
+                <!-- Type -->
+                <p class="mb-2">
+                    <i class="bi bi-book"></i>
+                    <strong>{% trans "Type:" %}</strong>
+                    {{ title.get_type_display }}
+                    {% if title.story_length %}
+                        ({{ title.get_story_length_display }})
+                    {% endif %}
+                </p>
+
+                <!-- First Published -->
+                {% if title.first_pub_date %}
+                    <p class="mb-2">
+                        <i class="bi bi-calendar"></i>
+                        <strong>{% trans "First Published:" %}</strong>
+                        {{ title.first_pub_date }}
+                    </p>
+                {% endif %}
+
+                <!-- Language -->
+                {% if title.language %}
+                    <p class="mb-2">
+                        <i class="bi bi-globe"></i>
+                        <strong>{% trans "Language:" %}</strong>
+                        {{ title.language.name }}
+                    </p>
+                {% endif %}
+            </div>
+            <div class="col-sm-6">
+                <!-- Series Information -->
+                {% if title.series %}
+                    <p class="mb-2">
+                        <i class="bi bi-collection"></i>
+                        <strong>{% trans "Series:" %}</strong>
+                        {{ title.series.title }}
+                        {% if title.series_position %}
+                            <span class="badge bg-secondary">
+                                #{{ title.series_position }}
+                            </span>
+                        {% endif %}
+                    </p>
+                {% endif %}
+
+                <!-- Content Flags -->
+                {% if title.is_juvenile or title.is_non_genre or title.is_graphic %}
+                    <p class="mb-2">
+                        <i class="bi bi-tag"></i>
+                        <strong>{% trans "Content Tags:" %}</strong>
+                        <span class="d-block mt-1">
+                            {% if title.is_juvenile %}
+                                <span class="badge bg-info">{% trans "Juvenile/YA" %}</span>
+                            {% endif %}
+                            {% if title.is_non_genre %}
+                                <span class="badge bg-secondary">{% trans "Non-Genre" %}</span>
+                            {% endif %}
+                            {% if title.is_graphic %}
+                                <span class="badge bg-warning">{% trans "Graphic" %}</span>
+                            {% endif %}
+                        </span>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

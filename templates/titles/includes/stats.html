@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-graph-up"></i> {% trans "Stats" %}</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-2">
+            <i class="bi bi-eye"></i>
+            <strong>{% trans "Views:" %}</strong>
+            {{ title.views }}
+        </p>
+        <p class="mb-2">
+            <i class="bi bi-graph-up"></i>
+            <strong>{% trans "Annual Views:" %}</strong>
+            {{ title.annual_views }}
+        </p>
+    </div>
+</div>

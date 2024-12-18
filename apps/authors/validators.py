@@ -15,4 +15,6 @@ class AuthorValidator:
         try:
             return DateComponentsMixin().parse_date_display(date_string, field_name)
         except ValidationError as e:
-            raise ValidationError({field_name: e})
+            raise ValidationError(
+                {field_name: f"Invalid date format for {field_name}: {e}"}
+            )

@@ -1,4 +1,3 @@
-<!-- templates/accounts/profile_update.html -->
 {% extends "base.html" %}
 {% load i18n %}
 
@@ -13,11 +12,48 @@
                     <h4 class="card-title mb-0">{% trans "Update Profile" %}</h4>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" novalidate class="auth-form">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary w-100 mt-3">
-                            {% trans "Save Changes" %}
+                        {% for field in form %}
+                            <div class="form-group mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold mb-2">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger ms-1">*</span>
+                                    {% endif %}
+                                </label>
+                                <div class="input-group {% if field.errors %}has-validation{% endif %}">
+                                    <span class="input-group-text">
+                                        <i class="bi {% if field.name == 'nickname' %}bi-tag
+                                                    {% elif field.name == 'birth_date' %}bi-calendar
+                                                    {% elif field.name == 'country' %}bi-globe
+                                                    {% elif field.name == 'bio' %}bi-pencil-square
+                                                    {% elif field.name == 'avatar' %}bi-image
+                                                    {% else %}bi-pencil{% endif %} text-primary">
+                                        </i>
+                                    </span>
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <div class="error-messages mt-1">
+                                        {% for error in field.errors %}
+                                            <small class="text-danger d-block">
+                                                <i class="bi bi-exclamation-circle me-1"></i>
+                                                {{ error }}
+                                            </small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <div class="form-text text-muted small mt-1">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        {{ field.help_text }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
+                            <i class="bi bi-check2-circle me-2"></i>{% trans "Save Changes" %}
                         </button>
                     </form>
                 </div>

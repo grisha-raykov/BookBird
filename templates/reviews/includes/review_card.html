@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <strong>{{ review.user.username }}</strong>
+            <div class="text-warning">
+                {% for _ in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                        <i class="bi bi-star-fill"></i>
+                    {% else %}
+                        <i class="bi bi-star"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <small class="text-muted">{{ review.created_at|date }}</small>
+    </div>
+    <p class="mb-0">{{ review.text|linebreaks }}</p>
+</div>

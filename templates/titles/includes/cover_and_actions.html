@@ -1,0 +1,16 @@
+<div class="sticky-top" style="top: 2rem;">
+    <!-- Cover Image -->
+    {% if publication_cover %}
+        <div class="card mb-4">
+            <img src="{{ publication_cover.publication.image_url }}"
+                 class="img-fluid rounded"
+                 alt="{{ title.title }}">
+        </div>
+    {% endif %}
+
+    <!-- Lists and Quick Actions -->
+    {% include "titles/includes/reading_lists.html" %}
+
+    <!-- Reading Stats -->
+    {% include "titles/includes/stats.html" %}
+</div>

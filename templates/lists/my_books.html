@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container my-5">
+        <!-- Lists Navigation -->
+        <div class="row mb-4">
+            <div class="col">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link {% if not selected_list %}active{% endif %}"
+                           href="{% url 'lists:my_books' %}">
+                            <i class="bi bi-grid"></i> {% trans "All Books" %}
+                        </a>
+                    </li>
+                    {% for list in user.reading_lists.all %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if selected_list.id == list.id %}active{% endif %}"
+                               href="{% url 'lists:list_detail' list.id %}">
+                                <i class="bi {% if list.list_type == 'read' %}bi-check-circle
+                                       {% elif list.list_type == 'currently_reading' %}bi-book
+                                       {% elif list.list_type == 'to_read' %}bi-bookmark
+                                       {% else %}bi-list{% endif %}"></i>
+                                {{ list.name }}
+                                <span class="badge bg-secondary rounded-pill">{{ list.items.count }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "List Management" %}</h5>
+                    <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#listManagement">
+                        <i class="bi bi-gear"></i> {% trans "Manage Lists" %}
+                    </button>
+                </div>
+            </div>
+            <div class="collapse" id="listManagement">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>{% trans "List Name" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Books" %}</th>
+                                <th>{% trans "Created" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for list in user.reading_lists.all %}
+                                <tr>
+                                    <td>
+                                        <i class="bi {% if list.list_type == 'read' %}bi-check-circle
+                                               {% elif list.list_type == 'currently_reading' %}bi-book
+                                               {% elif list.list_type == 'to_read' %}bi-bookmark
+                                               {% else %}bi-list{% endif %} me-2"></i>
+                                        {{ list.name }}
+                                    </td>
+                                    <td>{{ list.get_list_type_display }}</td>
+                                    <td>{{ list.items.count }}</td>
+                                    <td>{{ list.created_at|date }}</td>
+                                    <td>
+                                        {% if not list.is_default %}
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button"
+                                                        class="btn btn-outline-primary"
+                                                        onclick="window.location.href='{% url 'lists:list_detail' list.pk %}'">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger"
+                                                        onclick="confirmDelete('{{ list.id }}', '{{ list.name }}')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- List Management -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>{% if selected_list %}{{ selected_list.name }}{% else %}{% trans "My Books" %}{% endif %}</h1>
+                    <a href="{% url 'lists:create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> {% trans "Create New List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Books Grid -->
+        <div class="row g-4">
+            {% for item in list_items %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                {% if item.publication.image_url %}
+                                    <img src="{{ item.publication.image_url }}"
+                                         class="img-fluid rounded-start h-100 object-fit-cover"
+                                         alt="{{ item.publication.title }}">
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'titles:detail' item.publication.contained_titles.first.title.id %}"
+                                           class="text-decoration-none">
+                                            {{ item.publication.title }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text small text-muted">
+                                        {{ item.reading_list.name }}
+                                    </p>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-danger remove-book"
+                                                data-publication-id="{{ item.publication.id }}"
+                                                data-list-id="{{ item.reading_list.id }}">
+                                            <i class="bi bi-x"></i> {% trans "Remove" %}
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary move-book"
+                                                data-publication-id="{{ item.publication.id }}">
+                                            <i class="bi bi-arrow-right"></i> {% trans "Move" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        {% if selected_list %}
+                            {% trans "No books in this list yet." %}
+                        {% else %}
+                            {% trans "You haven't added any books to your lists yet." %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Move Book Modal -->
+    <div class="modal fade" id="moveBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Move to List" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        {% for list in user.reading_lists.all %}
+                            <button class="list-group-item list-group-item-action move-to-list"
+                                    data-list-id="{{ list.id }}">
+                                {{ list.name }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}
+        <script>
+            // Remove book functionality
+            document.querySelectorAll('.remove-book').forEach(button => {
+                button.addEventListener('click', function () {
+                    if (confirm("{% trans 'Are you sure you want to remove this book?' %}")) {
+                        const listId = this.dataset.listId;
+                        const publicationId = this.dataset.publicationId;
+
+                        fetch(`/lists/remove/${publicationId}/${listId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken'),
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    this.closest('.col-12').remove();
+                                }
+                            });
+                    }
+                });
+            });
+
+            // Move book functionality
+            let selectedPublicationId;
+            document.querySelectorAll('.move-book').forEach(button => {
+                button.addEventListener('click', function () {
+                    selectedPublicationId = this.dataset.publicationId;
+                    new bootstrap.Modal(document.getElementById('moveBookModal')).show();
+                });
+            });
+
+            document.querySelectorAll('.move-book').forEach(button => {
+                button.addEventListener('click', function () {
+                    selectedPublicationId = this.dataset.publicationId;
+                });
+            });
+
+            function confirmDelete(listId, listName) {
+                if (confirm(`{% trans "Are you sure you want to delete the list" %} "${listName}"?`)) {
+                    fetch(`/lists/${listId}/delete/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            }
+                        });
+                }
+            }
+
+            document.querySelectorAll('.move-to-list').forEach(button => {
+                button.addEventListener('click', function () {
+                    const listId = this.dataset.listId;
+
+                    fetch(`/lists/move/${selectedPublicationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `list_id=${listId}`
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            }
+                        });
+                });
+            });
+
+            function getCookie(name) {
+                let value = `; ${document.cookie}`;
+                let parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+        </script>
+    {% endblock %}
+{% endblock %}

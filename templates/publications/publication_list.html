@@ -23,25 +23,27 @@
                             <div class="col-8 col-md-12">
                                 <div class="card-body">
                                     <h5 class="card-title">
-                                        {{ publication.title }}
-                                    </h5>
-                                    {% if publication.publication_date %}
-                                        <p class="card-text text-muted">
-                                            {{ publication.publication_date }}
-                                        </p>
-                                    {% endif %}
-                                    {% if publication.publisher %}
-                                        <p class="card-text text-muted">
-                                            {{ publication.publisher.name }}
-                                        </p>
-                                    {% endif %}
-                                    {% if publication.format %}
-                                        <p class="card-text">
-                                            <small class="text-muted">
-                                                {{ publication.get_format_display }}
-                                            </small>
-                                        </p>
-                                    {% endif %}
+                                        <a href="{% url 'publications:detail' publication.pk %}"
+                                           class="text-decoration-none">
+                                            {{ publication.title }}
+                                        </a>
+                                        {% if publication.publication_date %}
+                                            <p class="card-text text-muted">
+                                                {{ publication.publication_date }}
+                                            </p>
+                                        {% endif %}
+                                        {% if publication.publisher %}
+                                            <p class="card-text text-muted">
+                                                {{ publication.publisher.name }}
+                                            </p>
+                                        {% endif %}
+                                        {% if publication.format %}
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    {{ publication.get_format_display }}
+                                                </small>
+                                            </p>
+                                        {% endif %}
                                 </div>
                             </div>
                         </div>

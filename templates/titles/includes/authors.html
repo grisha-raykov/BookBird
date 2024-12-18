@@ -1,0 +1,28 @@
+{% load i18n %}
+
+{% if title.author_relationships.exists %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-people"></i> {% trans "Authors" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for author_title in title.author_relationships.all %}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'authors:detail' author_title.author.pk %}"
+                               class="text-decoration-none">
+                                {{ author_title.author.canonical_name }}
+                            </a>
+                            {% if author_title.role != 1 %}
+                                <span class="badge bg-secondary ms-2">
+                                    {{ author_title.get_role_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}

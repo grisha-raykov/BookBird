@@ -7,82 +7,27 @@
 {% block content %}
 <div class="container my-4">
     <div class="row">
-        <!-- Cover -->
+        <!-- Left Column: Cover and Quick Actions -->
         <div class="col-md-4 mb-4">
-            {% if publication_cover %}
-                <div class="card">
-                    <img src="{{ publication_cover.publication.image_url }}"
-                         class="img-fluid rounded"
-                         alt="{{ title.title }}"
-                    >
-                </div>
-            {% endif %}
+            {% include "titles/includes/cover_and_actions.html" %}
         </div>
 
-        <!-- Details -->
+        <!-- Right Column: Title Details -->
         <div class="col-md-8">
-            <h1 class="mb-3">{{ title.title }}</h1>
+            <h1 class="mb-4">{{ title.title }}</h1>
 
-            <!-- Authors -->
-            {% if title.authors.exists %}
-                <h5 class="text-muted mb-4">
-                    {% for author in title.authors.all %}
-                        <a href="{% url 'authors:detail' author.pk %}"
-                           class="text-decoration-none">
-                            {{ author.canonical_name }}
-                        </a>
-                        {% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </h5>
-            {% endif %}
-
-            <!-- Series Info -->
-            {% if title.series %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">{% trans "Series" %}</h5>
-                    </div>
-                    <div class="card-body">
-                        {% include "titles/includes/series_breadcrumb.html" %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <!-- Publications/Editions -->
-            {% if title.publication_appearances.exists %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">{% trans "Editions" %}</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            {% for pub_title in title.publication_appearances.all %}
-                                <div class="col-6 col-md-4 col-lg-3 p-2">
-                                    <div class="card h-100">
-                                        {% if pub_title.publication.image_url %}
-                                            <img src="{{ pub_title.publication.image_url }}"
-                                                 class="card-img-top"
-                                                 alt="{{ pub_title.publication.title }}"
-                                                 loading="lazy">
-                                        {% endif %}
-                                        <div class="card-body">
-                                            <h6 class="card-title">{{ pub_title.publication.title }}</h6>
-                                            {% if pub_title.publication.publication_date %}
-                                                <p class="card-text">
-                                                    <small class="text-muted">
-                                                        {{ pub_title.publication.publication_date|slice:":4" }}
-                                                    </small>
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
+            {% include "titles/includes/basic_info.html" %}
+            {% include "titles/includes/authors.html" %}
+            {% include "titles/includes/reviews.html" %}
+            {% include "titles/includes/publications.html" %}
         </div>
     </div>
 </div>
+
+{% include "titles/includes/list_modal.html" %}
+{% include "titles/includes/review_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+{% include "titles/includes/title_js.html" %}
 {% endblock %}

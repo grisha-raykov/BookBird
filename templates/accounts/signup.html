@@ -12,11 +12,46 @@
                     <h4 class="card-title mb-0">{% trans "Sign Up" %}</h4>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" novalidate class="auth-form">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary w-100">
-                            {% trans "Sign Up" %}
+                        {% for field in form %}
+                            <div class="mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold mb-2">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger ms-1">*</span>
+                                    {% endif %}
+                                </label>
+                                <div class="input-group {% if field.errors %}has-validation{% endif %}">
+                                    <span class="input-group-text">
+                                        <i class="bi {% if field.name == 'username' %}bi-person
+                                                    {% elif field.name == 'email' %}bi-envelope
+                                                    {% elif 'password' in field.name %}bi-lock
+                                                    {% elif field.name == 'nickname' %}bi-tag
+                                                    {% elif field.name == 'birth_date' %}bi-calendar
+                                                    {% elif field.name == 'country' %}bi-globe
+                                                    {% else %}bi-pencil{% endif %} text-primary">
+                                        </i>
+                                    </span>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="invalid-tooltip">
+                                            {% for error in field.errors %}
+                                                {{ error }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if field.help_text %}
+                                    <div class="form-text text-muted small mt-1">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        {{ field.help_text }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
+                            <i class="bi bi-person-plus me-2"></i>{% trans "Sign Up" %}
                         </button>
                     </form>
                 </div>

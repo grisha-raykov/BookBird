@@ -20,6 +20,7 @@ lib64/
 parts/
 sdist/
 var/
+.vscode/
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -51,7 +52,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-
+.qodana.yaml
 # Translations
 *.mo
 *.pot

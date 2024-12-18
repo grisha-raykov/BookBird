@@ -1,4 +1,7 @@
+from datetime import timezone
+
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -30,7 +33,7 @@ class UserProfile(models.Model):
     )
 
     country = models.CharField(
-        max_length=100,
+        max_length=50,
         blank=True,
         null=True,
         verbose_name=_("Country"),
@@ -60,15 +63,40 @@ class UserProfile(models.Model):
         ]
 
     def __str__(self):
-        return self.get_full_name() or self.username
+        return self.user.get_full_name() or self.user.username
+
+    def clean(self):
+        super().clean()
+        if self.birth_date and self.birth_date > timezone.now().date():
+            raise ValidationError(_("Birth date cannot be in the future"))
+
+        if self.birth_date and self.birth_date.year < 1900:
+            raise ValidationError(
+                {"birth_date": _("Birth date year cannot be before 1900.")}
+            )
+        if self.nickname:
+            # Check for forbidden words
+            forbidden_words = ["admin", "root", "system"]  # Example list
+            if self.nickname.lower() in forbidden_words:
+                raise ValidationError({"nickname": _("This nickname is not allowed.")})
+
+    def save(self, *args, **kwargs):
+        """Clean before saving"""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    """Create UserProfile when User is created"""
     if created:
         UserProfile.objects.create(user=instance)
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    """Save UserProfile when User is saved"""
+    try:
+        instance.profile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)

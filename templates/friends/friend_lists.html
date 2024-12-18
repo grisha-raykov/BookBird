@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ friend.username }}'s {% trans "Lists" %}</h1>
+        <a href="{% url 'friends:list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Friends" %}
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for list in reading_lists %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ list.name }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="bi {% if list.list_type == 'read' %}bi-check-circle
+                                       {% elif list.list_type == 'currently_reading' %}bi-book
+                                       {% elif list.list_type == 'to_read' %}bi-bookmark
+                                       {% else %}bi-list{% endif %} me-2"></i>
+                            {{ list.get_list_type_display }}
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">{% trans "Books" %}: {{ list.items.count }}</small>
+                        </p>
+                        <div class="btn-group w-100">
+                            <button class="btn btn-outline-primary view-books" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#listBooksModal-{{ list.id }}">
+                                <i class="bi bi-book"></i> {% trans "View Books" %}
+                            </button>
+                            <button class="btn btn-outline-success copy-list"
+                                    data-list-id="{{ list.id }}">
+                                <i class="bi bi-files"></i> {% trans "Copy List" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Books Modal -->
+            <div class="modal fade" id="listBooksModal-{{ list.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ list.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="list-group">
+                                {% for item in list.items.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">
+                                                    <a href="{% url 'titles:detail' item.publication.contained_titles.first.title.id %}">
+                                                        {{ item.publication.title }}
+                                                    </a>
+                                                </h6>
+                                                <small class="text-muted">{% trans "Added" %}: {{ item.added_at|date }}</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary add-to-my-list"
+                                                    data-publication-id="{{ item.publication.id }}">
+                                                <i class="bi bi-plus"></i> {% trans "Add to My List" %}
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted m-3">{% trans "No books in this list." %}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    {% trans "No lists found." %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add to List Modal -->
+<div class="modal fade" id="addToListModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Add to List" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    {% for my_list in user.reading_lists.all %}
+                        <button class="list-group-item list-group-item-action select-list"
+                                data-list-id="{{ my_list.id }}">
+                            {{ my_list.name }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let selectedPublicationId = null;
+
+// Copy list 
+document.querySelectorAll('.copy-list').forEach(button => {
+    button.addEventListener('click', function() {
+        const listId = this.dataset.listId;
+        this.disabled = true;
+
+        fetch(`/lists/${listId}/copy/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                this.innerHTML = '<i class="bi bi-check"></i> {% trans "List Copied" %}';
+                this.classList.replace('btn-outline-success', 'btn-success');
+            }
+        })
+        .finally(() => {
+            this.disabled = false;
+        });
+    });
+});
+
+// Add to list 
+document.querySelectorAll('.add-to-my-list').forEach(button => {
+    button.addEventListener('click', function() {
+        selectedPublicationId = this.dataset.publicationId;
+        const addToListModal = new bootstrap.Modal(document.getElementById('addToListModal'));
+        addToListModal.show();
+    });
+});
+
+// Select list 
+document.querySelectorAll('.select-list').forEach(button => {
+    button.addEventListener('click', function() {
+        const listId = this.dataset.listId;
+
+        fetch(`/lists/add/${selectedPublicationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `list_id=${listId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                bootstrap.Modal.getInstance(document.getElementById('addToListModal')).hide();
+            }
+        });
+    });
+});
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast', 'show', 'position-fixed', 'bottom-0', 'end-0', 'm-3');
+    toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+    toast.classList.add('text-white');
+    toast.innerHTML = `
+        <div class="toast-body">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function getCookie(name) {
+    let value = `; ${document.cookie}`;
+    let parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}
+{% endblock %}

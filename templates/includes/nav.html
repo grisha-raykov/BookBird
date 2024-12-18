@@ -17,6 +17,14 @@
             <div class="navbar-nav mx-auto">
                 <div class="custom-navbar">
                     <ul class="navbar-nav justify-content-center">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.namespace == 'lists' %}active{% endif %}"
+                                   href="{% url 'lists:my_books' %}">
+                                    <i class="bi bi-collection-fill nav-icon-mybooks"></i> {% trans "My Books" %}
+                                </a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'authors' %}active{% endif %}"
                                href="{% url 'authors:list' %}">
@@ -25,10 +33,12 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'publications' %}active{% endif %}"
-                               href="{% url 'publications:list' %}">
+                               href="{% url 'titles:list' %}">
                                 <i class="bi bi-book-fill nav-icon-books"></i> {% trans "Books" %}
                             </a>
                         </li>
+
+
                         <li class="nav-item">
                             <a class="nav-link" href="#">
                                 <i class="bi bi-grid-fill nav-icon-categories"></i> Categories

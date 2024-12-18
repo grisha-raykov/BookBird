@@ -11,21 +11,23 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-9v0xde#n=(*g0z@y9uf708r&12jacp44vjd8@pu$qds2cd8663"
+SECRET_KEY = os.getenv("SECRET_KEY", "Y*xH-GKjvqL8:d5p{;Ck+z")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
 # Application definition
@@ -46,6 +48,9 @@ INSTALLED_APPS = [
     "apps.publications.apps.PublicationsConfig",
     "apps.awards.apps.AwardsConfig",
     "apps.accounts.apps.AccountsConfig",
+    "apps.lists.apps.ListsConfig",
+    "apps.friends.apps.FriendsConfig",
+    "apps.reviews.apps.ReviewsConfig",
 ]
 
 MIDDLEWARE = [
@@ -85,14 +90,13 @@ WSGI_APPLICATION = "BookBird.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "bookbird",
-        "USER": "asc",
-        "PASSWORD": "121212",
-        "HOST": "s.lan",
-        "PORT": "5432",
+        "NAME": os.getenv("DB_NAME", "your-default-db-name"),
+        "USER": os.getenv("DB_USER", "your-default-db-user"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "your-default-db-password"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -132,6 +136,7 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

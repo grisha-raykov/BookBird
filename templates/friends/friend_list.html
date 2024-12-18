@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% trans "Friends" %}</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#findFriendsModal">
+            <i class="bi bi-person-plus"></i> {% trans "Find Friends" %}
+        </button>
+    </div>
+
+    <!-- Friend Requests Section -->
+    {% if requests %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">{% trans "Friend Requests" %}</h5>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for request in requests %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">{{ request.user.username }}</h6>
+                        <small class="text-muted">{% trans "Sent" %}: {{ request.created_at|timesince }} {% trans "ago" %}</small>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success accept-request"
+                                data-friendship-id="{{ request.id }}">
+                            <i class="bi bi-check"></i> {% trans "Accept" %}
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger decline-request"
+                                data-friendship-id="{{ request.id }}">
+                            <i class="bi bi-x"></i> {% trans "Decline" %}
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Friends List -->
+    <div class="row g-4">
+        {% for friendship in friendships %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ friendship.friend.username }}</h5>
+                            <button class="btn btn-sm btn-outline-danger remove-friend"
+                                    data-friendship-id="{{ friendship.id }}">
+                                <i class="bi bi-person-x"></i>
+                            </button>
+                        </div>
+                        <p class="card-text text-muted">
+                            <small>{% trans "Friends since" %}: {{ friendship.created_at|date }}</small>
+                        </p>
+                        <a href="{% url 'friends:lists' friendship.friend.id %}"
+                           class="btn btn-outline-primary w-100">
+                            <i class="bi bi-list"></i> {% trans "View Lists" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    {% trans "You haven't added any friends yet." %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- Add this at the top of the content block after the container div -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050" id="notificationContainer">
+    {% if pending_requests_count %}
+        <div class="toast show bg-primary text-white" role="alert">
+            <div class="toast-body">
+                <i class="bi bi-bell-fill me-2"></i>
+                {% blocktranslate count counter=pending_requests_count %}
+                    You have {{ counter }} pending friend request
+                {% plural %}
+                    You have {{ counter }} pending friend requests
+                {% endblocktranslate %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+<!-- Find Friends Modal -->
+<div class="modal fade" id="findFriendsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Find Friends" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="userSearch"
+                           placeholder="{% trans 'Search by username...' %}">
+                    <button class="btn btn-outline-primary" type="button" id="searchUsers">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <div id="searchResults" class="list-group">
+                    <!-- Search results will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    {% block extra_js %}
+<script>
+// Declare constants once at the top
+const searchInput = document.getElementById('userSearch');
+const searchButton = document.getElementById('searchUsers');
+
+// Search functionality
+function performSearch() {
+    const query = searchInput.value;
+    if (query.length >= 3) {
+        fetch(`/friends/search/?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '';
+
+            if (data.users.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="list-group-item text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {% trans "No users found" %}
+                    </div>
+                `;
+                return;
+            }
+
+            data.users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <span>${user.username}</span>
+                    <button class="btn btn-sm btn-primary add-friend"
+                            data-user-id="${user.id}">
+                        <i class="bi bi-person-plus"></i> {% trans "Add" %}
+                    </button>
+                `;
+                resultsContainer.appendChild(item);
+
+                // Add click handler for the new add friend button
+                const addButton = item.querySelector('.add-friend');
+                addButton.addEventListener('click', function() {
+                    const userId = this.dataset.userId;
+                    addFriend(userId, this);
+                });
+            });
+        });
+    }
+}
+
+// Add friend functionality
+function addFriend(userId, button) {
+    fetch(`/friends/add/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.disabled = true;
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+            button.innerHTML = '<i class="bi bi-check"></i> {% trans "Request Sent" %}';
+        }
+    });
+}
+
+// Friend request handling
+document.querySelectorAll('.accept-request').forEach(button => {
+    button.addEventListener('click', function() {
+        const friendshipId = this.dataset.friendshipId;
+        acceptFriendRequest(friendshipId);
+    });
+});
+
+// Remove friend functionality
+document.querySelectorAll('.remove-friend').forEach(button => {
+    button.addEventListener('click', function() {
+        if (confirm("{% trans 'Are you sure you want to remove this friend?' %}")) {
+            const friendshipId = this.dataset.friendshipId;
+            removeFriend(friendshipId, this);
+        }
+    });
+});
+
+// Event listeners
+searchButton.addEventListener('click', performSearch);
+searchInput.addEventListener('keyup', function(event) {
+    if (event.key === 'Enter') {
+        performSearch();
+    }
+});
+searchInput.addEventListener('input', function() {
+    searchButton.disabled = this.value.length < 3;
+});
+
+// Helper functions
+function acceptFriendRequest(friendshipId) {
+    fetch(`/friends/accept/${friendshipId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function removeFriend(friendshipId, button) {
+    fetch(`/friends/remove/${friendshipId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.closest('.col-md-6').remove();
+        }
+    });
+}
+
+function getCookie(name) {
+    let value = `; ${document.cookie}`;
+    let parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}
+{% endblock %}

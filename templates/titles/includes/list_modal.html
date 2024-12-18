@@ -1,0 +1,93 @@
+{% load i18n %}
+
+{% if user.is_authenticated %}
+    <div class="modal fade" id="addToListModal" tabindex="-1" aria-labelledby="addToListModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addToListModalLabel">{% trans "Add to List" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% with first_pub=title.publication_appearances.first %}
+                        {% if first_pub %}
+                            {% for list in user.reading_lists.all %}
+                                <button class="list-group-item list-group-item-action add-to-list w-100 mb-2"
+                                        data-list-id="{{ list.id }}"
+                                        data-publication-id="{{ first_pub.publication.id }}">
+                                    <i class="bi {% if list.list_type == 'read' %}bi-check-circle
+                                               {% elif list.list_type == 'currently_reading' %}bi-book
+                                               {% elif list.list_type == 'to_read' %}bi-bookmark
+                                               {% else %}bi-list{% endif %} me-2"></i>
+                                    {{ list.name }}
+                                </button>
+                            {% empty %}
+                                <p class="text-center">{% trans "You don't have any reading lists yet." %}</p>
+                                <a href="{% url 'lists:create' %}" class="btn btn-primary w-100">
+                                    {% trans "Create a List" %}
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('addToListModal'));
+
+            document.querySelectorAll('.add-to-list').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.dataset.listId;
+                    const publicationId = this.dataset.publicationId;
+
+                    fetch(`/lists/add/${publicationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `list_id=${listId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            modal.hide();
+                            // Remove modal backdrop manually
+                            document.querySelector('.modal-backdrop')?.remove();
+                            document.body.classList.remove('modal-open');
+                            document.body.style.removeProperty('overflow');
+                            document.body.style.removeProperty('padding-right');
+                            location.reload();
+                        } else {
+                            alert(data.error || '{% trans "An error occurred" %}');
+                            modal.hide();
+                            document.querySelector('.modal-backdrop')?.remove();
+                            document.body.classList.remove('modal-open');
+                            document.body.style.removeProperty('overflow');
+                            document.body.style.removeProperty('padding-right');
+                        }
+                    })
+                    .catch(error => {
+                        alert('{% trans "An error occurred" %}');
+                        modal.hide();
+                        document.querySelector('.modal-backdrop')?.remove();
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('padding-right');
+                    });
+                });
+            });
+        });
+
+        function getCookie(name) {
+            let value = `; ${document.cookie}`;
+            let parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+    </script>
+    {% endblock %}
+{% endif %}

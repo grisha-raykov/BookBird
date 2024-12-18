@@ -6,7 +6,6 @@
 
 {% block content %}
 <div class="container my-4">
-
     <div class="jumbotron bg-light p-5 rounded">
         <h1 class="display-4">{{ title }}</h1>
         <p class="lead">{% trans "Your gateway to speculative fiction literature" %}</p>
@@ -17,43 +16,92 @@
             {% endblocktranslate %}
         </p>
     </div>
-    {% if popular_titles %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <h2 class="mb-4">{% trans "Popular Books" %}</h2>
-            <div class="row g-4">
-                {% for title in popular_titles %}
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            {% with first_pub=title.publication_appearances.first %}
-                                {% if first_pub.publication.image_url %}
-                                    <img src="{{ first_pub.publication.image_url }}"
-                                         class="card-img-top"
-                                         alt="{{ title.title }}"
-                                         style="height: 400px; object-fit: contain;">
-                                {% endif %}
-                            {% endwith %}
-                            <div class="card-body text-center">
-                                <h5 class="card-title">
-                                    <a href="{% url 'titles:detail' title.pk %}"
-                                       class="text-decoration-none">
-                                        {{ title.title }}
-                                    </a>
-                                </h5>
+
+    <!-- Most Popular Books -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h2 class="mb-4">{% trans "Most Popular Books" %}</h2>
+        <div class="row g-4">
+            {% for title in popular_titles %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        {% with first_pub=title.publication_appearances.first %}
+                            {% if first_pub.publication.image_url %}
+                                <img src="{{ first_pub.publication.image_url }}"
+                                     class="card-img-top"
+                                     alt="{{ title.title }}"
+                                     style="height: 400px; object-fit: contain;">
+                            {% endif %}
+                        {% endwith %}
+                        <div class="card-body text-center">
+                            <h5 class="card-title">
+                                <a href="{% url 'titles:detail' title.pk %}"
+                                   class="text-decoration-none">
+                                    {{ title.title }}
+                                </a>
+                            </h5>
+
+                            <!-- Author(s) -->
+                            {% if title.author_relationships.exists %}
                                 <p class="card-text">
                                     <small class="text-muted">
-                                        {% blocktranslate with views=title.annual_views %}
-                                            {{ views }} annual views
-                                        {% endblocktranslate %}
+                                        {% for author_title in title.author_relationships.all %}
+                                            <a href="{% url 'authors:detail' author_title.author.pk %}"
+                                               class="text-decoration-none text-muted">
+                                                {{ author_title.author.canonical_name }}
+                                            </a>{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
                                     </small>
                                 </p>
-                            </div>
+                            {% endif %}
+
+                            <!-- Series Info -->
+                            {% if title.series %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="bi bi-collection"></i>
+                                        {{ title.series.title }}
+                                        {% if title.series_position %}
+                                            <span class="badge bg-secondary">
+                                                #{{ title.series_position }}
+                                            </span>
+                                        {% endif %}
+                                    </small>
+                                </p>
+                            {% endif %}
+
+                            <!-- Publication Date -->
+                            {% if title.first_pub_date %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i>
+                                        {{ title.first_pub_date|slice:":4" }}
+                                    </small>
+                                </p>
+                            {% endif %}
+
+                            <!-- Type -->
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-book"></i>
+                                    {{ title.get_type_display }}
+                                </small>
+                            </p>
+
+                            <!-- Views -->
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-eye"></i>
+                                    {% blocktranslate with views=title.annual_views %}
+                                        {{ views }} annual views
+                                    {% endblocktranslate %}
+                                </small>
+                            </p>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

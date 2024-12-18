@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Write Review" %}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary bg-gradient text-white py-3">
+                    <h4 class="card-title mb-0">
+                        {% if form.instance.pk %}
+                            {% trans "Edit Review" %}
+                        {% else %}
+                            {% trans "Write Review" %}
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{% trans "Rating" %}</label>
+                            <div class="rating">
+                                {% for i in "54321" %}
+                                    <input type="radio" 
+                                           name="rating" 
+                                           value="{{ i }}" 
+                                           id="star{{ i }}" 
+                                           {% if form.instance.rating == i|add:"0" %}checked{% endif %}
+                                           required>
+                                    <label for="star{{ i }}">
+                                        <i class="bi bi-star-fill"></i>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="error-messages mt-1">
+                                    {% for error in form.rating.errors %}
+                                        <small class="text-danger d-block">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{% trans "Your Review" %}</label>
+                            <textarea name="text" 
+                                      class="form-control" 
+                                      rows="5" 
+                                      required>{{ form.instance.text }}</textarea>
+                            {% if form.text.errors %}
+                                <div class="error-messages mt-1">
+                                    {% for error in form.text.errors %}
+                                        <small class="text-danger d-block">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle me-2"></i>
+                                {% if form.instance.pk %}
+                                    {% trans "Update Review" %}
+                                {% else %}
+                                    {% trans "Submit Review" %}
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'titles:detail' title.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

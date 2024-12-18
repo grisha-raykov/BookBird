@@ -1,0 +1,62 @@
+// Add to publication detail template
+<div class="dropdown">
+    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-bookmark-plus"></i> {% trans "Add to List" %}
+    </button>
+    <ul class="dropdown-menu">
+        {% for list in user.reading_lists.all %}
+            <li>
+                <button class="dropdown-item add-to-list"
+                        data-list-id="{{ list.id }}"
+                        data-publication-id="{{ publication.id }}">
+                    {{ list.name }}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+document.querySelectorAll('.add-to-list').forEach(button => {
+    button.addEventListener('click', function() {
+        const listId = this.dataset.listId;
+        const publicationId = this.dataset.publicationId;
+
+        fetch(`/lists/add/${publicationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `list_id=${listId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.remove-book').forEach(button => {
+    button.addEventListener('click', function() {
+        const listId = this.dataset.listId;
+        const publicationId = this.dataset.publicationId;
+
+        fetch(`/lists/remove/${publicationId}/${listId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove item from DOM
+                this.closest('.list-group-item').remove();
+            }
+        });
+    });
+});
+</script>

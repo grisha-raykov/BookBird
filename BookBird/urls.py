@@ -18,13 +18,45 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from apps.core import views
 from apps.core.views import IndexView
 
+
 urlpatterns = [
-    path("", IndexView.as_view(), name="index"),
+    path(
+        "",
+        IndexView.as_view(),
+        name="index",
+    ),
     path("admin/", admin.site.urls),
-    path("authors/", include("apps.authors.urls")),
-    path("publications/", include("apps.publications.urls")),
-    path("titles/", include("apps.titles.urls")),  # Keep titles URLs for detail views
-    path("accounts/", include("apps.accounts.urls")),
+    path(
+        "authors/",
+        include("apps.authors.urls"),
+    ),
+    path(
+        "publications/",
+        include("apps.publications.urls"),
+    ),
+    path(
+        "titles/",
+        include("apps.titles.urls"),
+    ),  # Keep titles URLs for detail views
+    path(
+        "accounts/",
+        include("apps.accounts.urls"),
+    ),
+    path(
+        "lists/",
+        include("apps.lists.urls"),
+    ),
+    path(
+        "friends/",
+        include("apps.friends.urls"),
+    ),
+    path(
+        "search/",
+        views.GlobalSearchView.as_view(),
+        name="search",
+    ),
+    path("reviews/", include("apps.reviews.urls")),
 ]

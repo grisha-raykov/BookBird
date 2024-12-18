@@ -4,95 +4,97 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    <div class="container my-4">
-        <h1 class="mb-4">{{ title }}</h1>
+<div class="container my-4">
+    <h1 class="mb-4">{{ title }}</h1>
 
-        <div class="row g-4">
-            {% for title in titles %}
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100">
-                        <div class="row g-0">
-                            <div class="col-4 col-md-12">
-                                {% if title.image_url %}
-                                    <img src="{{ title.image_url }}"
+    <div class="row g-4">
+        {% for title in titles %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="row g-0">
+                        <div class="col-4 col-md-12">
+                            {% with publication=title.publication_appearances.first.publication %}
+                                {% if publication.image_url %}
+                                    <img src="{{ publication.image_url }}"
                                          class="img-fluid rounded-start h-100 w-100 object-fit-cover"
                                          alt="{{ title.title }}"
                                     >
                                 {% endif %}
-                            </div>
-                            <div class="col-8 col-md-12">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'titles:detail' title.pk %}"
-                                           class="text-decoration-none">
-                                            {{ title.title }}
-                                        </a>
-                                    </h5>
-                                    {% if title.first_pub_date %}
-                                        <p class="card-text text-muted">
-                                            {{ title.first_pub_date|date:"Y" }}
-                                        </p>
-                                    {% endif %}
-                                    {% if title.language %}
-                                        <p class="card-text text-muted">
-                                            {{ title.language.name }}
-                                        </p>
-                                    {% endif %}
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            {% blocktranslate with views=title.views %}
-                                                {{ views }} views
-                                            {% endblocktranslate %}
-                                        </small>
+                            {% endwith %}
+                        </div>
+                        <div class="col-8 col-md-12">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'titles:detail' title.pk %}" class="text-decoration-none">
+                                        {{ title.title }}
+                                    </a>
+                                </h5>
+                                {% if title.first_pub_date %}
+                                    <p class="card-text text-muted">
+                                        {{ title.first_pub_date|date:"Y" }}
                                     </p>
-                                </div>
+                                {% endif %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        {{ title.annual_views }} {% trans "annual views" %}
+                                    </small>
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-            {% empty %}
-                <div class="col-12">
-                    <p>{% trans "No titles found." %}</p>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if is_paginated %}
-            <nav aria-label="{% trans 'Page navigation' %}" class="my-4">
-                <ul class="pagination justify-content-center flex-wrap">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1">{% trans "First" %}</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                                {% trans "Previous" %}
-                            </a>
-                        </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">
-                            {% blocktranslate with current=page_obj.number total=page_obj.paginator.num_pages %}
-                                Page {{ current }} of {{ total }}
-                            {% endblocktranslate %}
-                        </span>
-                    </li>
-
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                                {% trans "Next" %}
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
-                                {% trans "Last" %}
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p>{% trans "No titles found." %}</p>
+            </div>
+        {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="{% trans 'Page navigation' %}" class="my-4">
+            <ul class="pagination justify-content-center flex-wrap">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "Previous" %}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">{% trans "Previous" %}</span>
+                    </li>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:-5 and num < page_obj.number|add:5 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% elif num == 1 or num == paginator.num_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                            {% trans "Next" %}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">{% trans "Next" %}</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
 {% endblock %}

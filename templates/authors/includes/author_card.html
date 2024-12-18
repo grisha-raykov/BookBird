@@ -1,0 +1,35 @@
+{% load i18n %}
+
+<div class="card h-100">
+    <div class="row g-0">
+        <div class="col-4">
+            {% if author.image_url %}
+                <img src="{{ author.image_url }}"
+                     class="img-fluid rounded-start h-100 object-fit-cover"
+                     alt="{{ author.canonical_name }}">
+            {% endif %}
+        </div>
+        <div class="col-8">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'authors:detail' author.pk %}"
+                       class="text-decoration-none">
+                        {{ author.canonical_name }}
+                    </a>
+                </h5>
+                {% if author.language %}
+                    <p class="card-text text-muted">
+                        {{ author.language.name }}
+                    </p>
+                {% endif %}
+                <p class="card-text">
+                    <small class="text-muted">
+                        {% blocktranslate with views=author.views %}
+                            {{ views }} views
+                        {% endblocktranslate %}
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

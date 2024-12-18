@@ -1,8 +1,9 @@
 from django.db.models import Prefetch
 from django.views.generic import ListView, DetailView
 from django.utils.translation import gettext_lazy as _
-from .models import Title
+from .models import Title, AuthorTitle
 from ..publications.models import PublicationTitle
+from ..reviews.forms import ReviewForm
 
 
 class TitleListView(ListView):
@@ -22,6 +23,7 @@ class TitleListView(ListView):
         )
 
     def get_context_data(self, **kwargs):
+        """Add extra context"""
         context = super().get_context_data(**kwargs)
         context["title"] = _("Books")
         return context
@@ -39,7 +41,12 @@ class TitleDetailView(DetailView):
             "series__parent",
             "parent_title",
         ).prefetch_related(
-            "authors",
+            Prefetch(
+                "author_relationships",
+                queryset=AuthorTitle.objects.select_related("author").order_by(
+                    "role", "author__canonical_name"
+                ),
+            ),
             "variant_titles",
             Prefetch(
                 "publication_appearances",
@@ -59,4 +66,22 @@ class TitleDetailView(DetailView):
             .exclude(publication__image_url="")
             .first()
         )
+        if self.request.session.get("form_errors"):
+            form = ReviewForm(initial=self.request.session.get("form_data"))
+            form._errors = self.request.session.pop("form_errors")
+            context["form"] = form
+            self.request.session.pop("form_data", None)
+        else:
+            context["form"] = ReviewForm()
+        if self.request.user.is_authenticated:
+            context["user_review"] = self.object.reviews.filter(
+                user=self.request.user
+            ).first()
+            if not context["user_review"]:
+                context["review_form"] = ReviewForm()
+
+        context["reviews"] = self.object.reviews.select_related("user").order_by(
+            "-created_at"
+        )
+
         return context

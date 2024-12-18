@@ -1,0 +1,61 @@
+{% load i18n %}
+
+{% if title.publication_appearances.exists %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-book"></i> {% trans "Publications" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                {% for pub_title in title.publication_appearances.all %}
+                    <div class="col-6 col-lg-4">
+                        <div class="card h-100">
+                            <a href="{% url 'publications:detail' pub_title.publication.pk %}"
+                               class="text-decoration-none">
+                                {% if pub_title.publication.image_url %}
+                                    <img src="{{ pub_title.publication.image_url }}"
+                                         class="card-img-top"
+                                         alt="{{ pub_title.publication.title }}"
+                                         style="height: 200px; object-fit: contain;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h6 class="card-title text-dark">
+                                        {{ pub_title.publication.title }}
+                                    </h6>
+                                    {% if pub_title.publication.publisher %}
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {{ pub_title.publication.publisher.name }}
+                                            </small>
+                                        </p>
+                                    {% endif %}
+                                    {% if pub_title.publication.publication_date %}
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {{ pub_title.publication.publication_date|date:"Y" }}
+                                            </small>
+                                        </p>
+                                    {% endif %}
+                                    {% if pub_title.publication.format %}
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {{ pub_title.publication.get_format_display }}
+                                            </small>
+                                        </p>
+                                    {% endif %}
+                                    {% if pub_title.page %}
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {% trans "Page:" %} {{ pub_title.page }}
+                                            </small>
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}

@@ -117,6 +117,10 @@ class Author(ISFDBBase, StatsBase, DateComponentsMixin):
 
     def clean(self) -> None:
         """Validate author data"""
+
+        if self.birthdate and self.deathdate and self.birthdate > self.deathdate:
+            raise ValidationError("Birthdate cannot be after deathdate.")
+
         if self.birthdate:
             self.birth_year, self.birth_month, self.birth_day = self.parse_date_display(
                 self.birthdate, "birthdate"
