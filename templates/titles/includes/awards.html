@@ -1,0 +1,30 @@
+{% load i18n %}
+
+{% if title.awards.exists %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0">{% trans "Awards" %}</h2>
+        </div>
+        <div class="card-body">
+            {% regroup title.awards.all|dictsort:"award.year" by award.type as award_groups %}
+            {% for award_type in award_groups %}
+                <h3 class="h6 mb-2">{{ award_type.grouper.name }}</h3>
+                <ul class="list-unstyled mb-3">
+                    {% for title_award in award_type.list %}
+                        <li class="mb-2">
+                            <a href="{% url 'awards:detail' title_award.award.pk %}" class="text-decoration-none">
+                                {{ title_award.award.year|slice:":4" }} -
+                                {{ title_award.award.category.name }}
+                                <span class="badge {% if title_award.award.level == 1 %}bg-success
+                                                  {% elif title_award.award.level == 9 %}bg-primary
+                                                  {% else %}bg-secondary{% endif %}">
+                                    {{ title_award.award.get_level_display }}
+                                </span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
