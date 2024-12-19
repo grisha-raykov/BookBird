@@ -221,6 +221,10 @@ body {
         flex-direction: column;
     }
 
+    .input-group {
+        margin-top: 1rem;
+    }
+
     .d-flex.align-items-center {
         flex-direction: column;
         margin: 1rem 0;
@@ -259,18 +263,24 @@ body {
 
     .custom-navbar .nav-link {
         display: flex;
-        align-items: center;
+        align-items: baseline;
         padding: 0.8rem 1rem;
         text-align: left;
     }
 
     .custom-navbar .nav-link i {
-        width: 24px; /* Fixed width for icons */
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        text-align: left;
+        width: 24px;
         margin-right: 1rem;
-        text-align: center;
     }
 
     .custom-navbar .navbar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
         width: 100%;
         padding: 0.5rem;
     }
@@ -278,6 +288,7 @@ body {
     .custom-navbar .nav-item {
         width: 100%;
     }
+
 }
 
 

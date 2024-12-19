@@ -17,7 +17,17 @@
                     <div class="mb-3">
                         <label class="form-label">{% trans "Description" %}</label>
                         <textarea name="description" class="form-control"
-                                rows="4" required>{{ group.description }}</textarea>
+                                  rows="4" required>{{ group.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Image URL" %}</label>
+                        <input type="url" name="image" class="form-control"
+                               value="{{ group.image }}"
+                               placeholder="{% trans 'Enter image URL' %}">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            {% trans "URL to group cover image" %}
+                        </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check">
