@@ -11,10 +11,18 @@ class FriendshipAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
 
     fieldsets = [
-        (None, {"fields": ("user", "friend", "status")}),
+        (
+            None,
+            {
+                "fields": ("user", "friend", "status"),
+            },
+        ),
         (
             _("Timestamps"),
-            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
         ),
     ]
 

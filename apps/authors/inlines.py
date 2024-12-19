@@ -23,8 +23,6 @@ class AuthorTransliterationInline(admin.TabularInline):
 
 
 class AuthorPseudonymInline(admin.TabularInline):
-    """Inline admin for author pseudonyms"""
-
     model = AuthorPseudonym
     fk_name = "real_name"
     extra = 0
@@ -34,7 +32,6 @@ class AuthorPseudonymInline(admin.TabularInline):
     show_change_link = True
 
     def pseudonym_display(self, obj):
-        """Display pseudonym with link to admin"""
         if obj.pseudonym:
             return obj.pseudonym.canonical_name
         return "-"
@@ -42,7 +39,6 @@ class AuthorPseudonymInline(admin.TabularInline):
     pseudonym_display.short_description = _("Pseudonym")
 
     def get_queryset(self, request):
-        """Optimize pseudonym querysets with select_related"""
         return (
             super()
             .get_queryset(request)
@@ -64,14 +60,12 @@ class AuthorTitleInline(admin.TabularInline):
     show_change_link = False
 
     def title_link(self, obj):
-        """Display title with link to title admin"""
         url = reverse("admin:titles_title_change", args=[obj.title.id])
         return format_html('<a href="{}">{}</a>', url, obj.title.title)
 
     title_link.short_description = _("Title")
 
     def get_queryset(self, request):
-        """Optimize inline queryset"""
         return (
             super()
             .get_queryset(request)

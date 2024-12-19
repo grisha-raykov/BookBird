@@ -58,5 +58,16 @@ urlpatterns = [
         views.GlobalSearchView.as_view(),
         name="search",
     ),
-    path("reviews/", include("apps.reviews.urls")),
+    path(
+        "reviews/",
+        include("apps.reviews.urls"),
+    ),
+    path(
+        "groups/",
+        include("apps.groups.urls"),
+    ),
+    path(
+        "awards/",
+        include("apps.awards.urls"),
+    ),
 ]

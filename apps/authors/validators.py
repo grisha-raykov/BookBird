@@ -2,11 +2,8 @@ from django.core.exceptions import ValidationError
 
 
 class AuthorValidator:
-    """Validators for Author model"""
-
     @classmethod
     def validate_date(cls, date_string: str, field_name: str):
-        """Validate and parse date string"""
         from BookBird.mixins import DateComponentsMixin
 
         if not date_string:

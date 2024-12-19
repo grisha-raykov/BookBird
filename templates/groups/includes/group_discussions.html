@@ -1,0 +1,36 @@
+{% load i18n %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{% trans "Discussions" %}</h5>
+
+    </div>
+    <div class="card-body">
+        {% for discussion in group.discussions.all %}
+            <div class="mb-4">
+                <h5>{{ discussion.topic }}</h5>
+                <p class="text-muted">
+                    <small>
+                        {% trans "Started by" %} {{ discussion.started_by.username }}
+                        <span class="mx-2">•</span>
+                        {{ discussion.created_at|date }}
+                        <span class="mx-2">•</span>
+                        {% trans "Discussing" %}
+                        <a href="{% url 'titles:detail' discussion.title.pk %}" class="text-decoration-none">
+                            {{ discussion.title.title }}
+                        </a>
+                    </small>
+                </p>
+                <a href="{% url 'groups:discussion_detail' group.id discussion.id %}"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-chat"></i> {% trans "Join Discussion" %}
+                </a>
+            </div>
+            {% if not forloop.last %}
+                <hr>{% endif %}
+        {% empty %}
+            <p class="text-center text-muted my-3">
+                {% trans "No discussions yet. Start one!" %}
+            </p>
+        {% endfor %}
+    </div>
+</div>

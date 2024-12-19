@@ -1,0 +1,58 @@
+{% load i18n %}
+<div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+        {% if group.image %}
+            <img src="{{ group.image }}" class="card-img-top" alt="{{ group.name }}">
+        {% endif %}
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="card-title mb-0">{{ group.name }}</h5>
+                {% if group.is_private %}
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-lock"></i> {% trans "Private" %}
+                    </span>
+                {% endif %}
+            </div>
+            <p class="card-text text-muted">
+                <small>
+                    <i class="bi bi-people"></i> {{ group.members.count }} {% trans "members" %}
+                    {% if not show_join %}
+                        <span class="mx-2">•</span>
+                        {% trans "Created" %} {{ group.created_at|date }}
+                    {% endif %}
+                </small>
+            </p>
+            <p class="card-text">{{ group.description|truncatewords:30 }}</p>
+        </div>
+        <div class="card-footer bg-transparent">
+            <div class="d-flex justify-content-between align-items-center">
+                {% if not show_join and user != group.creator %}
+                    <button class="btn btn-link text-danger p-0 leave-group"
+                            data-group-id="{{ group.pk }}"
+                            title="{% trans 'Leave Group' %}">
+                        <i class="bi bi-box-arrow-left"></i>
+                    </button>
+                {% else %}
+                    <div></div>
+                {% endif %}
+                <a href="{% url 'groups:detail' group.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> {% trans "View Details" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.leave-group {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+.leave-group:hover {
+    opacity: 1;
+    text-decoration: none;
+}
+.card-footer {
+    border-top: none;
+}
+</style>

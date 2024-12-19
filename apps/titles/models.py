@@ -10,7 +10,6 @@ from apps.titles.choices import TitleType, StoryLength, AuthorRole
 from apps.titles.validators import TitleValidator
 
 
-# Create your models here.
 class Title(ISFDBBase, StatsBase, DateComponentsMixin):
     title = models.TextField(
         blank=False,
@@ -272,7 +271,6 @@ class Series(models.Model):
                 }
             )
 
-        # Validate position is set if parent is set
         if self.parent and self.series_parent_position is None:
             raise ValidationError(
                 {
@@ -281,6 +279,15 @@ class Series(models.Model):
                     )
                 }
             )
+
+    def get_ancestors(self):
+        """Get all ancestor series in order"""
+        ancestors = []
+        current = self.parent
+        while current:
+            ancestors.append(current)
+            current = current.parent
+        return list(reversed(ancestors))
 
     class Meta:
         verbose_name = _("Series")

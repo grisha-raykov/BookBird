@@ -44,3 +44,9 @@ def get_valid_publication_date(publication_appearances):
         year = first_pub.publication.publication_date[:4]
         return year if year != "0000" else None
     return None
+
+
+@register.filter
+def map(sequence, attr):
+    """Get attribute from sequence of objects"""
+    return [getattr(item, attr) for item in sequence]

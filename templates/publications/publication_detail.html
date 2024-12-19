@@ -4,143 +4,147 @@
 {% block title %}{{ publication.title }}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <div class="row">
-        <!-- Cover Image -->
-        <div class="col-md-4 mb-4">
-            {% if publication.image_url %}
-                <div class="card">
-                    <img src="{{ publication.image_url }}"
-                         class="img-fluid rounded"
-                         alt="{{ publication.title }}"
-                    >
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Publication Details -->
-        <div class="col-md-8">
-            <h1 class="mb-3">{{ publication.title }}</h1>
-
-            <!-- Basic Information -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Publication Information" %}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            {% if publication.publisher %}
-                                <p class="mb-2">
-                                    <i class="bi bi-building"></i>
-                                    <strong>{% trans "Publisher:" %}</strong>
-                                    {{ publication.publisher.name }}
-                                </p>
-                            {% endif %}
-                            {% if publication.publication_date %}
-                                <p class="mb-2">
-                                    <i class="bi bi-calendar"></i>
-                                    <strong>{% trans "Publication Date:" %}</strong>
-                                    {{ publication.publication_date }}
-                                </p>
-                            {% endif %}
-                            {% if publication.isbn %}
-                                <p class="mb-2">
-                                    <i class="bi bi-upc"></i>
-                                    <strong>{% trans "ISBN:" %}</strong>
-                                    {{ publication.isbn }}
-                                </p>
-                            {% endif %}
-                        </div>
-                        <div class="col-sm-6">
-                            {% if publication.format %}
-                                <p class="mb-2">
-                                    <i class="bi bi-book"></i>
-                                    <strong>{% trans "Format:" %}</strong>
-                                    {{ publication.get_format_display }}
-                                </p>
-                            {% endif %}
-                            {% if publication.pages %}
-                                <p class="mb-2">
-                                    <i class="bi bi-file-text"></i>
-                                    <strong>{% trans "Pages:" %}</strong>
-                                    {{ publication.pages }}
-                                </p>
-                            {% endif %}
-                            {% if publication.price %}
-                                <p class="mb-2">
-                                    <i class="bi bi-tag"></i>
-                                    <strong>{% trans "Price:" %}</strong>
-                                    {{ publication.price }}
-                                </p>
-                            {% endif %}
-                        </div>
+    <div class="container my-4">
+        <div class="row">
+            <!-- Cover Image -->
+            <div class="col-md-4 mb-4">
+                {% if publication.image_url %}
+                    <div class="card">
+                        <img src="{{ publication.image_url }}"
+                             class="img-fluid rounded"
+                             alt="{{ publication.title }}"
+                        >
                     </div>
-                </div>
+                {% endif %}
             </div>
 
-            <!-- Series Information -->
-            {% if publication.publication_series %}
+            <!-- Publication Details -->
+            <div class="col-md-8">
+                <h1 class="mb-3">{{ publication.title }}</h1>
+
+                <!-- Basic Information -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-collection"></i> {% trans "Series Information" %}</h5>
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Publication Information" %}</h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-2">
-                            <strong>{% trans "Series:" %}</strong>
-                            {{ publication.publication_series.name }}
-                            {% if publication.series_number %}
-                                <span class="badge bg-secondary">
-                                    #{{ publication.series_number }}
-                                </span>
-                            {% endif %}
-                        </p>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                {% if publication.publisher %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-building"></i>
+                                        <strong>{% trans "Publisher:" %}</strong>
+                                        {{ publication.publisher.name }}
+                                    </p>
+                                {% endif %}
+                                {% if publication.publication_date %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar"></i>
+                                        <strong>{% trans "Publication Date:" %}</strong>
+                                        {{ publication.publication_date }}
+                                    </p>
+                                {% endif %}
+                                {% if publication.isbn %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-upc"></i>
+                                        <strong>{% trans "ISBN:" %}</strong>
+                                        {{ publication.isbn }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="col-sm-6">
+                                {% if publication.format %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-book"></i>
+                                        <strong>{% trans "Format:" %}</strong>
+                                        {{ publication.get_format_display }}
+                                    </p>
+                                {% endif %}
+                                {% if publication.pages %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-file-text"></i>
+                                        <strong>{% trans "Pages:" %}</strong>
+                                        {{ publication.pages }}
+                                    </p>
+                                {% endif %}
+                                {% if publication.price %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-tag"></i>
+                                        <strong>{% trans "Price:" %}</strong>
+                                        {{ publication.price }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            {% endif %}
 
-            <!-- Titles -->
-            {% if publication.titles.exists %}
+                <!-- Series Information -->
+                {% if publication.publication_series %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-collection"></i> {% trans "Series Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>{% trans "Series:" %}</strong>
+                                <a href="{% url 'publications:series_detail' publication.publication_series.pk %}"
+                                   class="text-decoration-none">
+                                    {{ publication.publication_series.name }}
+                                </a>
+                                {% if publication.series_number %}
+                                    <span class="badge bg-secondary">
+                        #{{ publication.series_number }}
+                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+
+
+                <!-- Contained Titles -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-journal-text"></i> {% trans "Contents" %}</h5>
+                        <h5 class="mb-0"><i class="bi bi-journal-text"></i> {% trans "Contained Titles" %}</h5>
                     </div>
                     <div class="card-body">
                         <div class="list-group">
-                            {% for title in publication.titles.all %}
+                            {% for pub_title in publication.contained_titles.all %}
                                 <div class="list-group-item">
-                                    <h6 class="mb-1">
-                                        <a href="{% url 'titles:detail' title.pk %}" 
-                                           class="text-decoration-none">
-                                            {{ title.title }}
-                                        </a>
-                                    </h6>
-                                    {% if title.author_relationships.exists %}
-                                        <p class="mb-1 text-muted">
-                                            {% for author_title in title.author_relationships.all %}
-                                                <a href="{% url 'authors:detail' author_title.author.pk %}"
-                                                   class="text-decoration-none text-muted">
-                                                    {{ author_title.author.canonical_name }}
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'titles:detail' pub_title.title.pk %}"
+                                                   class="text-decoration-none">
+                                                    {{ pub_title.title.title }}
                                                 </a>
-                                                {% if not forloop.last %}, {% endif %}
-                                            {% endfor %}
-                                        </p>
-                                    {% endif %}
-                                    {% if title.series %}
-                                        <small class="text-muted">
-                                            {{ title.series.title }}
-                                            {% if title.series_position %}
-                                                #{{ title.series_position }}
+                                            </h6>
+                                            {{ pub_title.title.type }}
+                                            {% if pub_title.title.author_relationships.exists %}
+                                                <p class="mb-1 text-muted">
+                                                    {% for author_title in pub_title.title.author_relationships.all %}
+                                                        <a href="{% url 'authors:detail' author_title.author.pk %}"
+                                                           class="text-decoration-none text-muted">
+                                                            {{ author_title.author.canonical_name }}
+                                                        </a>
+                                                        {% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </p>
                                             {% endif %}
-                                        </small>
-                                    {% endif %}
+                                        </div>
+                                        {% if pub_title.page %}
+                                            <span class="badge bg-secondary">
+                                {% trans "Page" %} {{ pub_title.page }}
+                            </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

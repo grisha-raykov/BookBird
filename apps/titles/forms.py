@@ -13,7 +13,6 @@ class TitleAdminForm(forms.ModelForm):
         fields = "__all__"
 
     def clean(self):
-        """Validate form data"""
         cleaned_data = super().clean()
 
         TitleValidator.validate_hierarchy(

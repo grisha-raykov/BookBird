@@ -1,0 +1,63 @@
+{% load i18n %}
+<h2 class="h4 mb-3">{% trans "My Groups" %}</h2>
+<div class="row g-4 mb-5">
+    {% for group in groups %}
+        {% include "groups/includes/group_card.html" with group=group show_join=False %}
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                {% if request.GET.search %}
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "No groups found matching your search." %}
+                {% else %}
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "You haven't joined any reading groups yet." %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.leave-group').forEach(button => {
+    button.addEventListener('click', function() {
+        if (confirm("{% trans 'Are you sure you want to leave this group?' %}")) {
+            const groupId = this.dataset.groupId;
+            this.disabled = true;
+
+            fetch(`/groups/${groupId}/leave/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the group card from the view
+                    this.closest('.col-md-6').remove();
+                    // Reload if no groups left
+                    if (document.querySelectorAll('.leave-group').length === 0) {
+                        location.reload();
+                    }
+                } else {
+                    alert(data.message);
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.disabled = false;
+            });
+        }
+    });
+});
+
+function getCookie(name) {
+    let value = `; ${document.cookie}`;
+    let parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}

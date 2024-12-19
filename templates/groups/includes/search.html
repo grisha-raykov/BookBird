@@ -1,0 +1,19 @@
+{% load i18n %}
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="get" action="{% url 'groups:list' %}" class="mb-4">
+            <div class="input-group">
+                <input type="search"
+                       name="search"
+                       class="form-control"
+                       placeholder="{% trans 'Search groups...' %}"
+                       value="{{ request.GET.search }}"
+                       aria-label="{% trans 'Search groups' %}">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i> {% trans "Search" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

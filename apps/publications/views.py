@@ -1,12 +1,12 @@
 from django.db.models import Q, F, Prefetch
+from django.db.models.functions import Length
 from django.utils.translation import gettext as _
 from django.views.generic import ListView, DetailView
 
-from apps.publications.models import Publication, PublicationTitle
+from apps.publications.models import Publication, PublicationTitle, PublicationSeries
 from ..titles.models import AuthorTitle
 
 
-# Create your views here.
 class PublicationListView(ListView):
     model = Publication
     template_name = "publications/publication_list.html"
@@ -62,11 +62,6 @@ class PublicationDetailView(DetailView):
     template_name = "publications/publication_detail.html"
     context_object_name = "publication"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["title"] = _("Publication Details")
-        return context
-
     def get_queryset(self):
         return (
             super()
@@ -77,11 +72,33 @@ class PublicationDetailView(DetailView):
                     "contained_titles",
                     queryset=PublicationTitle.objects.select_related(
                         "title", "title__series"
-                    ).prefetch_related(
+                    )
+                    .prefetch_related(
                         Prefetch(
                             "title__author_relationships",
                             queryset=AuthorTitle.objects.select_related("author"),
                         )
+                    )
+                    .order_by(Length("page"), "page", "title__title"),
+                )
+            )
+        )
+
+
+class PublicationSeriesDetailView(DetailView):
+    model = PublicationSeries
+    template_name = "publications/series_detail.html"
+    context_object_name = "series"
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .prefetch_related(
+                Prefetch(
+                    "publications",
+                    queryset=Publication.objects.select_related("publisher").order_by(
+                        "series_number", "publication_date"
                     ),
                 )
             )

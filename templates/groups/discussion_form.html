@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary bg-gradient text-white py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-chat"></i> {% trans "New Discussion" %}
+                        <small class="d-block mt-1 fw-normal">{{ group.name }}</small>
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form.title.as_hidden }}
+
+                        <!-- Book Info -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                {% trans "Book" %}
+                            </label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        {% with first_pub=title.publication_appearances.first %}
+                                            {% if first_pub.publication.image_url %}
+                                                <img src="{{ first_pub.publication.image_url }}"
+                                                     class="me-3"
+                                                     alt="{{ title.title }}"
+                                                     style="width: 60px; height: 90px; object-fit: cover;">
+                                            {% endif %}
+                                        {% endwith %}
+                                        <div>
+                                            <h6 class="mb-1">{{ title.title }}</h6>
+                                            {% if title.author_relationships.exists %}
+                                                <p class="mb-0 text-muted small">
+                                                    {% for author_title in title.author_relationships.all %}
+                                                        {{ author_title.author.canonical_name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.topic.id_for_label }}" class="form-label fw-bold">
+                                {% trans "Topic" %} <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-chat-text text-primary"></i>
+                                </span>
+                                {{ form.topic }}
+                            </div>
+                            {% if form.topic.errors %}
+                                <div class="error-messages mt-1">
+                                    {% for error in form.topic.errors %}
+                                        <small class="text-danger d-block">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            {{ error }}
+                                        </small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                {% trans "Create Discussion" %}
+                            </button>
+                            <a href="{% url 'groups:detail' group.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

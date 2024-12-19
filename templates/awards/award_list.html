@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">{% trans "Awards" %}</h1>
+    
+    <div class="row g-4">
+        {% for award_type in award_types %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="display-4 text-primary me-3">
+                                <i class="bi bi-trophy-fill"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title">
+                                    <a href="{% url 'awards:type_detail' award_type.pk %}" class="text-decoration-none">
+                                        {{ award_type.name }}
+                                    </a>
+                                </h5>
+                                {% if award_type.short_name %}
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ award_type.short_name }}</h6>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if award_type.by %}
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-award"></i> {% trans "Given by" %}: {{ award_type.by }}
+                                </small>
+                            </p>
+                        {% endif %}
+                        <div class="mt-3">
+                            {% if award_type.is_poll %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-bar-chart"></i> {% trans "Poll" %}
+                                </span>
+                            {% endif %}
+                            {% if award_type.is_non_genre %}
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-book"></i> {% trans "Non-Genre" %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

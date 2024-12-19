@@ -6,6 +6,14 @@
 
 {% block content %}
 <div class="container my-4">
+    <!-- Hero Image -->
+    <div class="mb-5">
+        <img src="{% static 'images/frontpage.jpg' %}"
+             class="img-fluid rounded w-100"
+             alt="{% trans 'Welcome to BookBird' %}"
+             style="max-height: 100px; object-fit: cover;">
+    </div>
+
     <div class="jumbotron bg-light p-5 rounded">
         <h1 class="display-4">{{ title }}</h1>
         <p class="lead">{% trans "Your gateway to speculative fiction literature" %}</p>
@@ -20,7 +28,7 @@
     <!-- Most Popular Books -->
 <div class="row mt-5">
     <div class="col-12">
-        <h2 class="mb-4">{% trans "Most Popular Books" %}</h2>
+        <h2 class="mb-4">{% trans "Most Popular Titles" %}</h2>
         <div class="row g-4">
             {% for title in popular_titles %}
                 <div class="col-md-6 col-lg-4">
@@ -103,5 +111,6 @@
             {% endfor %}
         </div>
     </div>
+</div>
 </div>
 {% endblock %}

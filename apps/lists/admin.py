@@ -3,9 +3,6 @@ from django.contrib import admin
 from apps.lists.models import ReadingList, ListItem
 
 
-# Register your models here.
-
-
 @admin.register(ReadingList)
 class ReadingListAdmin(admin.ModelAdmin):
     list_display = ["name", "user", "list_type", "is_default", "created_at"]

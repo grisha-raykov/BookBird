@@ -1,13 +1,11 @@
 from django.db.models import Q, Prefetch
+from django.db.models.aggregates import Sum
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
 from apps.authors.models import Author
 from apps.publications.models import Publication
 from apps.titles.models import Title, Series, AuthorTitle
-
-
-# apps/core/views.py
 
 
 class IndexView(TemplateView):
@@ -57,13 +55,12 @@ class GlobalSearchView(TemplateView):
             context["results"] = {}
             return context
 
-        # Search Titles - ordered by annual views
         titles = (
             Title.objects.filter(
                 Q(title__icontains=query) | Q(series__title__icontains=query)
             )
             .select_related("series", "language")
-            .order_by("-annual_views", "-views", "title")  # Order by views
+            .order_by("-annual_views", "-views", "title")
             .distinct()
         )
 
@@ -73,19 +70,19 @@ class GlobalSearchView(TemplateView):
                 Q(canonical_name__icontains=query) | Q(legal_name__icontains=query)
             )
             .select_related("language")
-            .order_by("-annual_views", "-views", "canonical_name")  # Order by views
+            .order_by("-annual_views", "-views", "canonical_name")
         )
-
-        # Search Series - ordered by total views of titles
-        from django.db.models import Sum
 
         series = (
             Series.objects.filter(title__icontains=query)
+            .select_related("parent")
+            .prefetch_related("titles")
             .annotate(
                 total_annual_views=Sum("titles__annual_views"),
                 total_views=Sum("titles__views"),
             )
             .order_by("-total_annual_views", "-total_views", "title")
+            .distinct()
         )
 
         # Search Publications (ISBN)

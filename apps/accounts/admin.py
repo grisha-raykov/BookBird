@@ -11,7 +11,6 @@ class UserProfileInline(admin.StackedInline):
     fk_name = "user"
 
 
-# @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     inlines = (UserProfileInline,)
 

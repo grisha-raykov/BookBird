@@ -104,7 +104,6 @@ class AuthorAdmin(admin.ModelAdmin):
     ]
 
     def get_queryset(self, request):
-        """Optimize querysets"""
         return (
             super()
             .get_queryset(request)

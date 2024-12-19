@@ -1,0 +1,10 @@
+{% load i18n %}
+
+{% if groups %}
+    <h2 class="h4 mb-3">{% trans "Explore Groups" %}</h2>
+    <div class="row g-4">
+        {% for group in groups %}
+            {% include "groups/includes/group_card.html" with group=group show_join=True %}
+        {% endfor %}
+    </div>
+{% endif %}

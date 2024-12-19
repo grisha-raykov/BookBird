@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h1 class="mb-2">{{ object.name }}</h1>
+            {% if object.short_name %}
+                <h6 class="card-subtitle mb-3 text-muted">{{ object.short_name }}</h6>
+            {% endif %}
+
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    {% if object.by %}
+                        <p class="mb-2"><strong>{% trans "Given by" %}:</strong> {{ object.by }}</p>
+                    {% endif %}
+                    {% if object.for_what %}
+                        <p class="mb-2"><strong>{% trans "Given for" %}:</strong> {{ object.for_what }}</p>
+                    {% endif %}
+
+                    <!-- Award Years Info -->
+                    {% if awards %}
+                        <p class="mb-2">
+                            <strong>{% trans "Years active" %}:</strong>
+                            {{ awards.last.year|slice:":4" }} - {{ awards.first.year|slice:":4" }}
+                            ({{ awards.count }} {% trans "awards" %})
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-md-end">
+                    {% if object.wikipedia_url %}
+                        <a href="{{ object.wikipedia_url }}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="bi bi-wikipedia"></i> {% trans "Wikipedia" %}
+                        </a>
+                    {% endif %}
+
+                    {% if object.is_poll %}
+                        <span class="badge bg-info ms-2">{% trans "Poll" %}</span>
+                    {% endif %}
+                    {% if object.is_non_genre %}
+                        <span class="badge bg-secondary ms-2">{% trans "Non-Genre" %}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Filter Awards" %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">{% trans "Year" %}</label>
+                    <select name="year" class="form-select">
+                        <option value="">{% trans "All Years" %}</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+                                {{ year|slice:':4' }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">{% trans "Category" %}</label>
+                    <select name="category" class="form-select">
+                        <option value="">{% trans "All Categories" %}</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-filter"></i> {% trans "Filter" %}
+                    </button>
+                    {% if request.GET.year or request.GET.category %}
+                        <a href="{% url 'awards:type_detail' object.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> {% trans "Clear" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Awards Table -->
+    <h2 class="h4 mb-3">{% trans "Awards" %}</h2>
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>{% trans "Year" %}</th>
+                <th>{% trans "Category" %}</th>
+                <th>{% trans "Title" %}</th>
+                <th>{% trans "Level" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for award in awards %}
+                <tr>
+                    <td>{{ award.year|slice:':4' }}</td>
+                    <td>{{ award.category.name }}</td>
+                    <td>
+                        {% for title_award in award.title_awards.all %}
+                            <a href="{% url 'titles:detail' title_award.title.pk %}" class="text-decoration-none">
+                                {{ title_award.title.title }}
+                            </a>
+                            {% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ award.get_level_display }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">
+                        {% if request.GET.year or request.GET.category %}
+                            {% trans "No awards found matching your filters." %}
+                        {% else %}
+                            {% trans "No awards found." %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+{% endblock %}

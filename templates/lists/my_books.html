@@ -116,14 +116,29 @@
                             </div>
                             <div class="col-8">
                                 <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'titles:detail' item.publication.contained_titles.first.title.id %}"
-                                           class="text-decoration-none">
-                                            {{ item.publication.title }}
-                                        </a>
-                                    </h5>
+                                    {% with title=item.publication.contained_titles.first.title %}
+                                        <h5 class="card-title mb-1">
+                                            <a href="{% url 'titles:detail' title.pk %}" class="text-decoration-none">
+                                                {{ title.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="card-text small text-muted mb-2">
+                                            {% trans "Edition" %}: {{ item.publication.title }}
+                                        </p>
+                                        {% if title.author_relationships.exists %}
+                                            <p class="card-text small text-muted mb-2">
+                                                {% for author_title in title.author_relationships.all %}
+                                                    <a href="{% url 'authors:detail' author_title.author.pk %}"
+                                                       class="text-decoration-none text-muted">
+                                                        {{ author_title.author.canonical_name }}
+                                                    </a>
+                                                    {% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
                                     <p class="card-text small text-muted">
-                                        {{ item.reading_list.name }}
+                                        {% trans "List" %}: {{ item.reading_list.name }}
                                     </p>
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-danger remove-book"
@@ -132,7 +147,9 @@
                                             <i class="bi bi-x"></i> {% trans "Remove" %}
                                         </button>
                                         <button class="btn btn-sm btn-outline-primary move-book"
-                                                data-publication-id="{{ item.publication.id }}">
+                                                data-publication-id="{{ item.publication.id }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#moveBookModal">
                                             <i class="bi bi-arrow-right"></i> {% trans "Move" %}
                                         </button>
                                     </div>

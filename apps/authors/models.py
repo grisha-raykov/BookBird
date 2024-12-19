@@ -65,14 +65,20 @@ class Author(ISFDBBase, StatsBase, DateComponentsMixin):
     death_month = models.IntegerField(
         blank=True,
         null=True,
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12),
+        ],
         help_text=_("Month of death (1-12) if known"),
     )
 
     death_day = models.IntegerField(
         blank=True,
         null=True,
-        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(31),
+        ],
         help_text=_("Day of death (1-31) if known"),
     )
 
@@ -94,7 +100,7 @@ class Author(ISFDBBase, StatsBase, DateComponentsMixin):
         Language,
         blank=False,
         null=True,
-        on_delete=models.PROTECT,  # Prevent language deletion if authors exist
+        on_delete=models.PROTECT,
         related_name="authors",
         help_text=_("Primary language of the author's works"),
     )
@@ -219,8 +225,6 @@ class Author(ISFDBBase, StatsBase, DateComponentsMixin):
 
 
 class AuthorPseudonym(models.Model):
-    """Model for managing author pseudonyms"""
-
     pseudonym = models.OneToOneField(
         "Author",
         on_delete=models.CASCADE,
@@ -257,8 +261,6 @@ class AuthorPseudonym(models.Model):
 
 
 class AuthorTransliteration(TransliterationBase):
-    """Model for storing romanized transliterations of author names"""
-
     author = models.ForeignKey(
         "Author",
         on_delete=models.CASCADE,

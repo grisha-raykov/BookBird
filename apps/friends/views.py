@@ -97,7 +97,9 @@ class CopyListView(LoginRequiredMixin, View):
         for item in source_list.items.all():
             ListItem.objects.create(reading_list=new_list, publication=item.publication)
 
-        return JsonResponse({"success": True, "message": _("List copied successfully")})
+        return JsonResponse(
+            {"success": True, "message": _("List copied successfully")},
+        )
 
 
 class UserSearchView(LoginRequiredMixin, View):

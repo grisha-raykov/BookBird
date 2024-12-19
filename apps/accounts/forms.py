@@ -1,5 +1,4 @@
 from django.utils import timezone
-
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import (
@@ -18,7 +17,7 @@ class SignUpForm(UserCreationForm):
         widget=forms.EmailInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Enter your email",
+                "placeholder": _("Enter your email"),
             }
         ),
     )
@@ -28,7 +27,7 @@ class SignUpForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Enter your nickname",
+                "placeholder": _("Enter your nickname"),
             }
         ),
     )
@@ -37,7 +36,8 @@ class SignUpForm(UserCreationForm):
         widget=forms.DateInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Enter your birth date",
+                "type": "date",
+                "placeholder": _("Enter your birth date"),
             }
         ),
     )
@@ -47,7 +47,7 @@ class SignUpForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Enter your country",
+                "placeholder": _("Enter your country"),
             }
         ),
     )
@@ -66,12 +66,10 @@ class SignUpForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         for field in self.fields:
             self.fields[field].widget.attrs.update(
                 {
                     "class": "form-control",
-                    "placeholder": f'Enter your {field.replace("_", " ")}',
                 }
             )
             if field in self.errors:
@@ -84,6 +82,12 @@ class SignUpForm(UserCreationForm):
         if nickname and UserProfile.objects.filter(nickname=nickname).exists():
             raise forms.ValidationError(_("This nickname is already taken."))
         return nickname
+
+    def clean_birth_date(self):
+        birth_date = self.cleaned_data.get("birth_date")
+        if birth_date and birth_date > timezone.now().date():
+            raise forms.ValidationError(_("Birth date cannot be in the future."))
+        return birth_date
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -108,18 +112,15 @@ class ProfileUpdateForm(forms.ModelForm):
             }
         ),
     )
-
     birth_date = forms.DateField(
         required=False,
         widget=forms.DateInput(
             attrs={
                 "class": "form-control",
                 "type": "date",
-                "placeholder": _("Your date of birth"),
             }
         ),
     )
-
     country = forms.CharField(
         required=False,
         max_length=100,
@@ -130,7 +131,6 @@ class ProfileUpdateForm(forms.ModelForm):
             }
         ),
     )
-
     bio = forms.CharField(
         required=False,
         widget=forms.Textarea(
@@ -141,7 +141,6 @@ class ProfileUpdateForm(forms.ModelForm):
             }
         ),
     )
-
     avatar = forms.URLField(
         required=False,
         widget=forms.URLInput(
@@ -178,69 +177,24 @@ class ProfileUpdateForm(forms.ModelForm):
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
-        max_length=254,
-        required=True,
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Username",
+                "placeholder": _("Username"),
             }
         ),
     )
     password = forms.CharField(
-        required=True,
         widget=forms.PasswordInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Password",
+                "placeholder": _("Password"),
             }
         ),
     )
 
-    def clean(self):
-        username = self.cleaned_data.get("username")
-        password = self.cleaned_data.get("password")
-        email = self.cleaned_data.get("email")
-        nickname = self.cleaned_data.get("nickname")
-        birth_date = self.cleaned_data.get("birth_date")
-
-        if username and password:
-            # Check if username exists
-            if not User.objects.filter(username=username).exists():
-                raise forms.ValidationError(
-                    _("Username does not exist."), code="invalid_username"
-                )
-
-            # Try to authenticate
-            self.user_cache = authenticate(
-                self.request, username=username, password=password
-            )
-            if self.user_cache is None:
-                # Username exists but password is wrong
-                raise forms.ValidationError(
-                    _("Incorrect password."), code="invalid_password"
-                )
-            elif not self.user_cache.is_active:
-                raise forms.ValidationError(
-                    _("This account is inactive."), code="inactive"
-                )
-
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError(_("A user with that email already exists."))
-
-        if nickname and UserProfile.objects.filter(nickname=nickname).exists():
-            raise forms.ValidationError(_("A user with that nickname already exists."))
-
-        if birth_date and birth_date > timezone.now().date():
-            raise forms.ValidationError(_("Birth date cannot be in the future."))
-
-        return self.cleaned_data
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.errors:
-            for field in self.fields.values():
-                field.widget.attrs["class"] = "form-control is-invalid"
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
@@ -252,8 +206,8 @@ class CustomPasswordChangeForm(PasswordChangeForm):
             )
 
     def clean_new_password2(self):
+        password2 = super().clean_new_password2()
         password1 = self.cleaned_data.get("new_password1")
-        password2 = self.cleaned_data.get("new_password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError(_("The two password fields didn’t match."))
+            self.add_error("new_password2", _("The two password fields didn't match."))
         return password2

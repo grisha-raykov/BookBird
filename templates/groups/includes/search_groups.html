@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="row g-4 mb-5">
+    {% for group in groups %}
+        {% include "groups/includes/group_card.html" with group=group show_join=False %}
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                {% if request.GET.search %}
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "No groups found matching your search." %}
+                {% else %}
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "You haven't joined any reading groups yet." %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">{{ series.name }}</h1>
+
+    <div class="row g-4">
+        {% for publication in series.publications.all %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    {% if publication.image_url %}
+                        <img src="{{ publication.image_url }}"
+                             class="card-img-top"
+                             alt="{{ publication.title }}"
+                             style="height: 300px; object-fit: contain;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'publications:detail' publication.pk %}" 
+                               class="text-decoration-none">
+                                {{ publication.title }}
+                            </a>
+                        </h5>
+                        {% if publication.series_number %}
+                            <span class="badge bg-secondary mb-2">
+                                #{{ publication.series_number }}
+                            </span>
+                        {% endif %}
+                        {% if publication.publisher %}
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ publication.publisher.name }}
+                                </small>
+                            </p>
+                        {% endif %}
+                        {% if publication.publication_date %}
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ publication.publication_date }}
+                                </small>
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "No publications found in this series." %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

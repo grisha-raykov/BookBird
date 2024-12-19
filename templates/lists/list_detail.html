@@ -2,224 +2,245 @@
 {% load i18n %}
 
 {% block content %}
-<div class="container my-5">
-    <!-- List Header -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="mb-2">{{ reading_list.name }}</h1>
-                    <p class="text-muted mb-0">
-                        <i class="bi {% if reading_list.list_type == 'read' %}bi-check-circle
+    <div class="container my-5">
+        <!-- List Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="mb-2">{{ reading_list.name }}</h1>
+                        <p class="text-muted mb-0">
+                            <i class="bi {% if reading_list.list_type == 'read' %}bi-check-circle
                                     {% elif reading_list.list_type == 'currently_reading' %}bi-book
                                     {% elif reading_list.list_type == 'to_read' %}bi-bookmark
                                     {% else %}bi-list{% endif %} me-2"></i>
-                        {{ reading_list.get_list_type_display }}
-                        <span class="mx-2">•</span>
-                        {{ reading_list.items.count }} {% trans "books" %}
-                        <span class="mx-2">•</span>
-                        {% trans "Created" %} {{ reading_list.created_at|date }}
-                    </p>
-                </div>
-                {% if not reading_list.is_default %}
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editListModal">
-                            <i class="bi bi-pencil"></i> {% trans "Edit List" %}
-                        </button>
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteListModal">
-                            <i class="bi bi-trash"></i> {% trans "Delete List" %}
-                        </button>
+                            {{ reading_list.get_list_type_display }}
+                            <span class="mx-2">•</span>
+                            {{ reading_list.items.count }} {% trans "books" %}
+                            <span class="mx-2">•</span>
+                            {% trans "Created" %} {{ reading_list.created_at|date }}
+                        </p>
                     </div>
-                {% endif %}
+                    {% if not reading_list.is_default %}
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#editListModal">
+                                <i class="bi bi-pencil"></i> {% trans "Edit List" %}
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#deleteListModal">
+                                <i class="bi bi-trash"></i> {% trans "Delete List" %}
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Books Grid -->
-    <div class="row g-4">
-        {% for item in list_items %}
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100">
-                    <div class="row g-0">
-                        <div class="col-4">
-                            {% if item.publication.image_url %}
-                                <img src="{{ item.publication.image_url }}"
-                                     class="img-fluid rounded-start h-100 object-fit-cover"
-                                     alt="{{ item.publication.title }}">
-                            {% endif %}
-                        </div>
-                        <div class="col-8">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ item.publication.title }}</h5>
-                                <p class="card-text small text-muted">
-                                    {% trans "Added" %}: {{ item.added_at|date }}
-                                </p>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-danger remove-book"
-                                            data-publication-id="{{ item.publication.id }}"
-                                            data-list-id="{{ reading_list.id }}">
-                                        <i class="bi bi-x"></i> {% trans "Remove" %}
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary move-book" 
-                                            data-publication-id="{{ item.publication.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#moveBookModal">
-                                        <i class="bi bi-arrow-right"></i> {% trans "Move" %}
-                                    </button>
+        <!-- Books Grid -->
+        <div class="row g-4">
+            {% for item in list_items %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                {% if item.publication.image_url %}
+                                    <img src="{{ item.publication.image_url }}"
+                                         class="img-fluid rounded-start h-100 object-fit-cover"
+                                         alt="{{ item.publication.title }}">
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body">
+                                    {% with title=item.publication.contained_titles.first.title %}
+                                        <h5 class="card-title mb-1">
+                                            <a href="{% url 'titles:detail' title.pk %}" class="text-decoration-none">
+                                                {{ title.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="card-text small text-muted mb-2">
+                                            {% trans "Edition" %}: {{ item.publication.title }}
+                                        </p>
+                                        {% if title.author_relationships.exists %}
+                                            <p class="card-text small text-muted mb-2">
+                                                {% for author_title in title.author_relationships.all %}
+                                                    <a href="{% url 'authors:detail' author_title.author.pk %}"
+                                                       class="text-decoration-none text-muted">
+                                                        {{ author_title.author.canonical_name }}
+                                                    </a>
+                                                    {% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <p class="card-text small text-muted">
+                                        {% trans "Added" %}: {{ item.added_at|date }}
+                                    </p>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-danger remove-book"
+                                                data-publication-id="{{ item.publication.id }}"
+                                                data-list-id="{{ reading_list.id }}">
+                                            <i class="bi bi-x"></i> {% trans "Remove" %}
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary move-book"
+                                                data-publication-id="{{ item.publication.id }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#moveBookModal">
+                                            <i class="bi bi-arrow-right"></i> {% trans "Move" %}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    {% trans "No books in this list yet." %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        {% trans "No books in this list yet." %}
+                    </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
-</div>
 
-{% if not reading_list.is_default %}
-    <!-- Edit List Modal -->
-    <div class="modal fade" id="editListModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Edit List" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="post" action="{% url 'lists:edit' reading_list.pk %}">
-                    <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label">{% trans "List Name" %}</label>
-                            <input type="text" name="name" class="form-control" 
-                                   value="{{ reading_list.name }}" required>
+    {% if not reading_list.is_default %}
+        <!-- Edit List Modal -->
+        <div class="modal fade" id="editListModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{% trans "Edit List" %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'lists:edit' reading_list.pk %}">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "List Name" %}</label>
+                                <input type="text" name="name" class="form-control"
+                                       value="{{ reading_list.name }}" required>
+                            </div>
                         </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                {% trans "Cancel" %}
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                {% trans "Save Changes" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete List Modal -->
+        <div class="modal fade" id="deleteListModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{% trans "Delete List" %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{% trans "Are you sure you want to delete this list?" %}</p>
+                        <p class="text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            {% trans "This action cannot be undone." %}
+                        </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             {% trans "Cancel" %}
                         </button>
-                        <button type="submit" class="btn btn-primary">
-                            {% trans "Save Changes" %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete List Modal -->
-    <div class="modal fade" id="deleteListModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Delete List" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>{% trans "Are you sure you want to delete this list?" %}</p>
-                    <p class="text-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        {% trans "This action cannot be undone." %}
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        {% trans "Cancel" %}
-                    </button>
-                    <form method="post" action="{% url 'lists:delete' reading_list.pk %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
-                            {% trans "Delete List" %}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Move Book Modal -->
-    <div class="modal fade" id="moveBookModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{% trans "Move to List" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="list-group">
-                        {% for list in user.reading_lists.all %}
-                            {% if list.id != reading_list.id %}
-                                <button class="list-group-item list-group-item-action move-to-list"
-                                        data-list-id="{{ list.id }}">
-                                    {{ list.name }}
-                                </button>
-                            {% endif %}
-                        {% endfor %}
+                        <form method="post" action="{% url 'lists:delete' reading_list.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                {% trans "Delete List" %}
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-{% endif %}
+
+        <!-- Move Book Modal -->
+        <div class="modal fade" id="moveBookModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{% trans "Move to List" %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="list-group">
+                            {% for list in user.reading_lists.all %}
+                                {% if list.id != reading_list.id %}
+                                    <button class="list-group-item list-group-item-action move-to-list"
+                                            data-list-id="{{ list.id }}">
+                                        {{ list.name }}
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.querySelectorAll('.remove-book').forEach(button => {
-    button.addEventListener('click', function() {
-        if (confirm("{% trans 'Are you sure you want to remove this book?' %}")) {
-            const listId = this.dataset.listId;
-            const publicationId = this.dataset.publicationId;
-            
-            fetch(`/lists/remove/${publicationId}/${listId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.closest('.col-12').remove();
+    <script>
+        document.querySelectorAll('.remove-book').forEach(button => {
+            button.addEventListener('click', function () {
+                if (confirm("{% trans 'Are you sure you want to remove this book?' %}")) {
+                    const listId = this.dataset.listId;
+                    const publicationId = this.dataset.publicationId;
+
+                    fetch(`/lists/remove/${publicationId}/${listId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.closest('.col-12').remove();
+                            }
+                        });
                 }
             });
-        }
-    });
-});
-
-document.querySelectorAll('.move-to-list').forEach(button => {
-    button.addEventListener('click', function() {
-        const listId = this.dataset.listId;
-        const publicationId = document.querySelector('.move-book').dataset.publicationId;
-        
-        fetch(`/lists/move/${publicationId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `list_id=${listId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
         });
-    });
-});
 
-function getCookie(name) {
-    let value = `; ${document.cookie}`;
-    let parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
-</script>
+        document.querySelectorAll('.move-to-list').forEach(button => {
+            button.addEventListener('click', function () {
+                const listId = this.dataset.listId;
+                const publicationId = document.querySelector('.move-book').dataset.publicationId;
+
+                fetch(`/lists/move/${publicationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `list_id=${listId}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+            });
+        });
+
+        function getCookie(name) {
+            let value = `; ${document.cookie}`;
+            let parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+    </script>
 {% endblock %}

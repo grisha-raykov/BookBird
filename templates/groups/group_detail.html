@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    {% include "groups/includes/group_header.html" with group=object %}
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-4">
+            {% include "groups/includes/group_info.html" with group=object %}
+            {% include "groups/includes/group_members.html" with group=object %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-8">
+            {% include "groups/includes/group_discussions.html" with group=object %}
+        </div>
+    </div>
+</div>
+
+{% include "groups/includes/edit_modal.html" with group=object %}
+{% include "groups/includes/delete_modal.html" with group=object %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    {% include "groups/includes/member_actions.js" %}
+</script>
+{% endblock %}

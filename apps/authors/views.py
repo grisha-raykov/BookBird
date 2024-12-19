@@ -1,12 +1,11 @@
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.views.generic import ListView, DetailView
 from django.utils.translation import gettext_lazy as _
 from .models import Author
+from ..awards.models import TitleAward, Award, AwardType
 
 
 class AuthorListView(ListView):
-    """Display paginated list of authors"""
-
     model = Author
     template_name = "authors/author_list.html"
     context_object_name = "authors"
@@ -14,13 +13,10 @@ class AuthorListView(ListView):
     ordering = ["-views", "canonical_name"]
 
     def get_queryset(self):
-        """Get authors with optimized query"""
-        """Get authors with optimized query"""
         queryset = Author.objects.select_related("language").only(
             "canonical_name", "language", "views", "image_url"
         )
 
-        # Handle search
         query = self.request.GET.get("q")
         if query:
             queryset = queryset.filter(
@@ -32,7 +28,6 @@ class AuthorListView(ListView):
         return queryset.order_by(*self.ordering)
 
     def get_context_data(self, **kwargs):
-        """Add extra context"""
         context = super().get_context_data(**kwargs)
         context["title"] = _("Authors")
         if self.request.GET.get("q"):
@@ -51,8 +46,16 @@ class AuthorDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = self.object.canonical_name
-        titles = self.object.titles.all().order_by("-views")[:20]
-
+        titles = self.object.titles.all().order_by("-views")[:100]
+        award_wins = sum(
+            title.awards.filter(award__level=1).count() for title in titles
+        )
+        award_nominations = sum(
+            title.awards.filter(award__level=9).count() for title in titles
+        )
+        context.update(
+            {"award_wins": award_wins, "award_nominations": award_nominations}
+        )
         for title in titles:
             if not title.publication_appearances.filter(
                 publication__image_url__isnull=False
@@ -68,4 +71,39 @@ class AuthorDetailView(DetailView):
                     title.publication_appearances = [next_oldest_publication]
 
         context["titles"] = titles
+        return context
+
+
+class AuthorAwardsView(DetailView):
+    model = Author
+    template_name = "authors/author_awards.html"
+    context_object_name = "author"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all award types for this author
+        award_types = (
+            AwardType.objects.filter(
+                awards__title_awards__title__in=self.object.titles.all()
+            )
+            .distinct()
+            .prefetch_related(
+                Prefetch(
+                    "awards",
+                    queryset=Award.objects.filter(
+                        title_awards__title__in=self.object.titles.all()
+                    )
+                    .select_related("category")
+                    .prefetch_related(
+                        Prefetch(
+                            "title_awards",
+                            queryset=TitleAward.objects.filter(
+                                title__in=self.object.titles.all()
+                            ).select_related("title"),
+                        )
+                    ),
+                )
+            )
+        )
+        context["award_types"] = award_types
         return context

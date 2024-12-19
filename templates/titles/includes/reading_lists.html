@@ -1,6 +1,5 @@
 {% load i18n %}
-
-
+{% load list_tags %}
 {% if user.is_authenticated %}
     <div class="card mb-4">
         <div class="card-header">
@@ -9,10 +8,28 @@
         <div class="card-body">
             {% with first_pub=title.publication_appearances.first %}
                 {% if first_pub %}
+                    {% for list in user.reading_lists.all %}
+                        {% if first_pub.publication in list.items.all|map:'publication' %}
+                            <div class="mb-2">
+                                <span class="badge {% if list.list_type == 'read' %}bg-success
+                                               {% elif list.list_type == 'currently_reading' %}bg-primary
+                                               {% elif list.list_type == 'to_read' %}bg-info
+                                               {% else %}bg-secondary{% endif %}">
+                                    <i class="bi {% if list.list_type == 'read' %}bi-check-circle
+                                               {% elif list.list_type == 'currently_reading' %}bi-book
+                                               {% elif list.list_type == 'to_read' %}bi-bookmark
+                                               {% else %}bi-list{% endif %}"></i>
+                                    {% trans "In" %} {{ list.name }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
                     {% if user_lists %}
                         {% include "titles/includes/list_items.html" %}
                     {% endif %}
-                    <button class="btn btn-primary w-100" type="button"
+
+                    <button class="btn btn-primary w-100 mt-3" type="button"
                             data-bs-toggle="modal"
                             data-bs-target="#addToListModal">
                         <i class="bi bi-bookmark-plus"></i>

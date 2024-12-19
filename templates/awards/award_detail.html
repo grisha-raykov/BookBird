@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="mb-4">
+        <a href="{% url 'awards:type_detail' object.type.pk %}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to" %} {{ object.type.name }}
+        </a>
+        
+        <div class="card">
+            <div class="card-header">
+                <h1 class="h3 mb-0">{{ object.category.name }} - {{ object.year|slice:":4" }}</h1>
+                <p class="text-muted mb-0">
+                    <small>
+                        {{ object.type.name }}
+                        {% if object.type.short_name %}
+                            ({{ object.type.short_name }})
+                        {% endif %}
+                    </small>
+                </p>
+            </div>
+
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>{% trans "Award Information" %}</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">{% trans "Level" %}</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge {% if object.level == 1 %}bg-success
+                                           {% elif object.level == 9 %}bg-primary
+                                           {% else %}bg-secondary{% endif %}">
+                                {{ object.get_level_display }}
+                            </span>
+                        </dd>
+
+                        {% if object.author %}
+                            <dt class="col-sm-3">{% trans "Author" %}</dt>
+                            <dd class="col-sm-9">{{ object.author }}</dd>
+                        {% endif %}
+
+                        {% if object.movie_title %}
+                            <dt class="col-sm-3">{% trans "Movie Title" %}</dt>
+                            <dd class="col-sm-9">{{ object.movie_title }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+
+                {% if titles %}
+                    <h5 class="mb-3">{% trans "Awarded Titles" %}</h5>
+                    <div class="row g-4">
+                        {% for title_award in titles %}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                {% include "titles/includes/title_card.html" with title=title_award.title %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

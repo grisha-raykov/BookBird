@@ -1,0 +1,24 @@
+{% load i18n %}
+{% load author_tags %}
+
+{% regroup author.titles.all|filter_title_awards by awards.first.award.type as award_groups %}
+{% if award_groups %}
+    <div class="mt-3">
+        <p class="text-muted mb-2">
+            <i class="bi bi-trophy"></i>
+            <strong>{% trans "Awards:" %}</strong>
+            {% with total_wins=0 total_nominations=0 %}
+                {% for award_type in award_groups %}
+                    {% with wins=award_type.list|filter_wins nominations=award_type.list|filter_nominations %}
+                        {% if wins %}{% with total_wins=total_wins|add:wins|length %}{% endwith %}{% endif %}
+                        {% if nominations %}{% with total_nominations=total_nominations|add:nominations|length %}{% endwith %}{% endif %}
+                    {% endwith %}
+                {% endfor %}
+                {{ total_wins }} {% trans "wins" %}, {{ total_nominations }} {% trans "nominations" %}
+            {% endwith %}
+            <a href="{% url 'authors:awards' author.pk %}" class="text-decoration-none ms-2">
+                <i class="bi bi-arrow-right"></i> {% trans "View all" %}
+            </a>
+        </p>
+    </div>
+{% endif %}

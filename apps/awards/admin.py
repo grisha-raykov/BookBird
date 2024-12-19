@@ -3,7 +3,6 @@ from django.contrib import admin
 from .models import Award, AwardType, AwardCategory
 
 
-# Register your models here.
 @admin.register(Award)
 class AwardAdmin(admin.ModelAdmin):
     list_display = ["title", "author", "year", "type", "category", "level"]

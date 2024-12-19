@@ -1,5 +1,5 @@
 {% load i18n %}
-
+{% load static %}
 <div class="card h-100">
     <div class="row g-0">
         <div class="col-4">
@@ -7,6 +7,10 @@
                 <img src="{{ author.image_url }}"
                      class="img-fluid rounded-start h-100 object-fit-cover"
                      alt="{{ author.canonical_name }}">
+            {% else %}
+                <img src="{% static 'images/author_placeholder.png' %}"
+                     class="img-fluid rounded-start h-100 object-fit-cover"
+                     alt="{% trans 'Author placeholder' %}">
             {% endif %}
         </div>
         <div class="col-8">

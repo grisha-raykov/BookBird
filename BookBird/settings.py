@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,6 +35,8 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = [
     "jazzmin",
+    "dal",
+    "dal_select2",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -51,6 +54,7 @@ INSTALLED_APPS = [
     "apps.lists.apps.ListsConfig",
     "apps.friends.apps.FriendsConfig",
     "apps.reviews.apps.ReviewsConfig",
+    "apps.groups.apps.GroupsConfig",
 ]
 
 MIDDLEWARE = [

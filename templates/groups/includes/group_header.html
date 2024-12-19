@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load group_tags %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="mb-2">{{ group.name }}</h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-people"></i> {{ group.members.count }} {% trans "members" %}
+                    <span class="mx-2">•</span>
+                    {% trans "Created by" %} {{ group.creator.username }}
+                    <span class="mx-2">•</span>
+                    {{ group.created_at|date }}
+                </p>
+            </div>
+            <div>
+                {% if user == group.creator %}
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#editGroupModal">
+                            <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#deleteGroupModal">
+                            <i class="bi bi-trash"></i> {% trans "Delete" %}
+                        </button>
+                    </div>
+                {% elif not group|is_member:user %}
+                    <button class="btn btn-success join-group" data-group-id="{{ group.pk }}">
+                        <i class="bi bi-person-plus"></i> {% trans "Join Group" %}
+                    </button>
+                {% elif user != group.creator %}
+                    <button class="btn btn-outline-danger leave-group" data-group-id="{{ group.pk }}">
+                        <i class="bi bi-box-arrow-left"></i> {% trans "Leave Group" %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

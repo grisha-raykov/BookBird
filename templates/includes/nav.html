@@ -25,6 +25,14 @@
                                 </a>
                             </li>
                         {% endif %}
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.namespace == 'lists' %}active{% endif %}"
+                                   href="{% url 'groups:list' %}">
+                                    <i class="bi bi-grid-fill nav-icon-categories"></i> My Groups
+                                </a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'authors' %}active{% endif %}"
                                href="{% url 'authors:list' %}">
@@ -32,7 +40,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.namespace == 'publications' %}active{% endif %}"
+                            <a class="nav-link {% if request.resolver_match.namespace == 'titles' %}active{% endif %}"
                                href="{% url 'titles:list' %}">
                                 <i class="bi bi-book-fill nav-icon-books"></i> {% trans "Books" %}
                             </a>
@@ -40,13 +48,9 @@
 
 
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-grid-fill nav-icon-categories"></i> Categories
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-info-circle-fill nav-icon-about"></i> About
+                            <a class="nav-link {% if request.resolver_match.namespace == 'awards' %}active{% endif %}"
+                               href="{% url 'awards:list' %}">
+                                <i class="bi bi-trophy-fill nav-icon-awards"></i> {% trans "Awards" %}
                             </a>
                         </li>
                     </ul>

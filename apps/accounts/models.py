@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-# Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User,
@@ -80,21 +79,18 @@ class UserProfile(models.Model):
                 raise ValidationError({"nickname": _("This nickname is not allowed.")})
 
     def save(self, *args, **kwargs):
-        """Clean before saving"""
         self.full_clean()
         super().save(*args, **kwargs)
 
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Create UserProfile when User is created"""
     if created:
         UserProfile.objects.create(user=instance)
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """Save UserProfile when User is saved"""
     try:
         instance.profile.save()
     except UserProfile.DoesNotExist:

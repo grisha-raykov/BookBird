@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Series Breadcrumb -->
+    <nav aria-label="Series hierarchy">
+        <ol class="breadcrumb mb-4">
+            {% for ancestor in ancestor_series %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'titles:series_detail' ancestor.pk %}" class="text-decoration-none">
+                        {{ ancestor.title }}
+                    </a>
+                </li>
+            {% endfor %}
+            <li class="breadcrumb-item active">{{ series.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Series Info -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h1 class="h3 mb-0">{{ series.title }}</h1>
+        </div>
+        <div class="card-body">
+            {% if series.parent %}
+                <p class="mb-2">
+                    <i class="bi bi-diagram-3"></i>
+                    <strong>{% trans "Part of:" %}</strong>
+                    <a href="{% url 'titles:series_detail' series.parent.pk %}" class="text-decoration-none">
+                        {{ series.parent.title }}
+                    </a>
+                    {% if series.series_parent_position %}
+                        <span class="badge bg-secondary">#{{ series.series_parent_position }}</span>
+                    {% endif %}
+                </p>
+            {% endif %}
+            {% if series.series_note %}
+                <p class="mb-0">{{ series.series_note }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Subseries -->
+    {% if subseries %}
+        <h2 class="h4 mb-3">{% trans "Subseries" %}</h2>
+        <div class="list-group mb-4">
+            {% for subseries in subseries %}
+                <a href="{% url 'titles:series_detail' subseries.pk %}" 
+                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        {{ subseries.title }}
+                        {% if subseries.series_parent_position %}
+                            <span class="badge bg-secondary">#{{ subseries.series_parent_position }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">
+                        {{ subseries.titles.count }} {% trans "titles" %}
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Titles -->
+    <h2 class="h4 mb-3">{% trans "Titles in Series" %}</h2>
+    <div class="row g-4">
+        {% for title in series.titles.all %}
+            <div class="col-12 col-md-6 col-lg-4">
+                {% include "titles/includes/title_card.html" with title=title %}
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {% trans "No titles found in this series." %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

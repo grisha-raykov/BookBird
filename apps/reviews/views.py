@@ -1,8 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView, DeleteView, CreateView
-
+from django.utils.translation import gettext as _
 from .forms import ReviewForm
 from .models import Review
 from ..titles.models import Title
@@ -47,7 +48,7 @@ class AddReviewView(LoginRequiredMixin, CreateView):
         form.instance.title = get_object_or_404(Title, pk=self.kwargs["title_id"])
         try:
             return super().form_valid(form)
-        except Exception:
+        except IntegrityError:
             # Handle unique constraint violation
             form.add_error(None, _("You have already reviewed this title"))
             return self.form_invalid(form)
