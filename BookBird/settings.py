@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "apps.books.apps.BooksConfig",
     "apps.authors.apps.AuthorsConfig",
     "apps.languages.apps.LanguagesConfig",
     "apps.core.apps.CoreConfig",
